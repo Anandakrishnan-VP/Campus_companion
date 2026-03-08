@@ -82,6 +82,16 @@ const Index = () => {
   const [isThinking, setIsThinking] = useState(false);
   const conversationRef = useRef<{ role: string; content: string }[]>([]);
 
+  const handleClearChat = useCallback(() => {
+    speech.stopSpeaking();
+    conversationRef.current = [];
+    setMessages([{
+      id: "welcome",
+      role: "assistant",
+      content: "Hello! I'm Yukti, your NCERC AI Assistant. I can help you find faculty, navigate the campus, check events, and more. How can I help you today?",
+    }]);
+  }, [speech]);
+
   const speech = useSpeech();
 
   const handleSendMessage = useCallback(
