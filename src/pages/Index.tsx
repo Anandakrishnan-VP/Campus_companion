@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -6,16 +6,16 @@ import AvatarDisplay from "@/components/kiosk/AvatarDisplay";
 import ChatInterface, { type ChatMessage } from "@/components/kiosk/ChatInterface";
 import QuickActions from "@/components/kiosk/QuickActions";
 import EmergencyButton from "@/components/kiosk/EmergencyButton";
+import { useSpeech } from "@/hooks/use-speech";
 
-// Mock AI responses for now - will be replaced with Lovable AI
 const getMockResponse = (query: string): string => {
   const q = query.toLowerCase();
   if (q.includes("faculty") || q.includes("professor") || q.includes("swathy"))
     return "Professor Swathy is currently in Room 204, Block A. She has a class from 10:00 AM to 11:00 AM. Her next free slot is at 11:15 AM. Would you like me to show directions to her office?";
   if (q.includes("event") || q.includes("seminar"))
-    return "📅 Today's Events:\n\n• AI Workshop — Seminar Hall, 2:00 PM - 4:00 PM\n• Coding Contest — CS Lab 1, 10:00 AM - 1:00 PM\n• Guest Lecture on Cybersecurity — Auditorium, 3:30 PM";
+    return "Today's Events:\n\n• AI Workshop — Seminar Hall, 2:00 PM - 4:00 PM\n• Coding Contest — CS Lab 1, 10:00 AM - 1:00 PM\n• Guest Lecture on Cybersecurity — Auditorium, 3:30 PM";
   if (q.includes("navigate") || q.includes("location") || q.includes("lab") || q.includes("room"))
-    return "The AI Lab is located on the Second Floor in Block B, near the east staircase. Turn right from the elevator and it's the third door on your left. 🗺️";
+    return "The AI Lab is located on the Second Floor in Block B, near the east staircase. Turn right from the elevator and it's the third door on your left.";
   if (q.includes("department"))
     return "This building houses the following departments:\n\n• Computer Science & Engineering\n• Artificial Intelligence & Data Science\n• Information Technology\n• Electronics & Communication";
   if (q.includes("college") || q.includes("about"))
@@ -28,31 +28,54 @@ const Index = () => {
     {
       id: "welcome",
       role: "assistant",
-      content: "Hello! 👋 I'm your Campus AI Assistant. I can help you find faculty, navigate the building, check events, and more. How can I help you today?",
+      content: "Hello! I'm your Campus AI Assistant. I can help you find faculty, navigate the building, check events, and more. How can I help you today?",
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
 
-  const handleSendMessage = useCallback((text: string) => {
-    const userMsg: ChatMessage = { id: Date.now().toString(), role: "user", content: text };
-    setMessages((prev) => [...prev, userMsg]);
-    setIsLoading(true);
+  const speech = useSpeech();
 
-    // Simulate AI response
-    setTimeout(() => {
-      const response = getMockResponse(text);
-      const assistantMsg: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: response,
-      };
-      setMessages((prev) => [...prev, assistantMsg]);
-      setIsLoading(false);
-      setIsSpeaking(true);
-      setTimeout(() => setIsSpeaking(false), 3000);
-    }, 1200);
-  }, []);
+  // When voice recognition captures a transcript, send it as a message
+  useEffect(() => {
+    if (speech.transcript && !speech.isListening) {
+      handleSendMessage(speech.transcript);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [speech.transcript, speech.isListening]);
+
+  const handleSendMessage = useCallback(
+    async (text: string) => {
+      const userMsg: ChatMessage = { id: Date.now().toString(), role: "user", content: text };
+      setMessages((prev) => [...prev, userMsg]);
+      setIsLoading(true);
+      setIsThinking(true);
+
+      // Simulate AI response
+      setTimeout(async () => {
+        const response = getMockResponse(text);
+        const assistantMsg: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: response,
+        };
+        setMessages((prev) => [...prev, assistantMsg]);
+        setIsLoading(false);
+        setIsThinking(false);
+
+        // Speak the response
+        await speech.speak(response);
+      }, 1200);
+    },
+    [speech]
+  );
+
+  const getStatus = () => {
+    if (speech.isSpeaking) return "Speaking...";
+    if (speech.isListening) return "Listening...";
+    if (isThinking) return "Processing...";
+    return "Ready to help";
+  };
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -83,15 +106,22 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Left: Avatar + Quick Actions */}
           <div className="flex flex-col items-center gap-6 pt-4">
-            <AvatarDisplay isSpeaking={isSpeaking} status={isSpeaking ? "Speaking..." : isLoading ? "Processing..." : "Ready to help"} />
-            
+            <AvatarDisplay
+              isSpeaking={speech.isSpeaking}
+              isListening={speech.isListening}
+              isThinking={isThinking}
+              status={getStatus()}
+            />
+
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="w-full"
             >
-              <p className="text-xs text-muted-foreground mb-2 font-display uppercase tracking-wider text-center">Quick Actions</p>
+              <p className="text-xs text-muted-foreground mb-2 font-display uppercase tracking-wider text-center">
+                Quick Actions
+              </p>
               <QuickActions onAction={handleSendMessage} />
             </motion.div>
           </div>
@@ -106,6 +136,12 @@ const Index = () => {
               messages={messages}
               isLoading={isLoading}
               onSendMessage={handleSendMessage}
+              isListening={speech.isListening}
+              onStartListening={speech.startListening}
+              onStopListening={speech.stopListening}
+              isSpeaking={speech.isSpeaking}
+              onStopSpeaking={speech.stopSpeaking}
+              voiceSupported={speech.supported}
             />
           </motion.div>
         </div>
