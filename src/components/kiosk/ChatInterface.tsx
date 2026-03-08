@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Mic, MicOff, Loader2, Volume2, VolumeX } from "lucide-react";
+import { Send, Mic, Square, Loader2, Volume2, VolumeX } from "lucide-react";
 
 export interface ChatMessage {
   id: string;
@@ -42,14 +42,6 @@ const ChatInterface = ({
     if (!input.trim() || isLoading) return;
     onSendMessage(input.trim());
     setInput("");
-  };
-
-  const handleMicToggle = () => {
-    if (isListening) {
-      onStopListening();
-    } else {
-      onStartListening();
-    }
   };
 
   return (
@@ -113,7 +105,13 @@ const ChatInterface = ({
                   />
                 ))}
               </div>
-              <span className="text-xs text-accent font-display">Listening... speak now</span>
+              <span className="text-xs text-accent font-display flex-1">Listening... speak now</span>
+              <button
+                onClick={onStopListening}
+                className="px-3 py-1 rounded-md bg-accent text-accent-foreground text-xs font-display font-semibold"
+              >
+                Stop & Send
+              </button>
             </div>
           </motion.div>
         )}
@@ -134,7 +132,9 @@ const ChatInterface = ({
             >
               <Volume2 className="w-4 h-4 text-primary" />
               <span className="text-xs text-primary font-display flex-1">Speaking...</span>
-              <VolumeX className="w-3 h-3 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground font-display flex items-center gap-1">
+                <VolumeX className="w-3 h-3" /> Stop
+              </span>
             </button>
           </motion.div>
         )}
@@ -147,21 +147,32 @@ const ChatInterface = ({
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={handleMicToggle}
-              className={`p-3 rounded-xl transition-all ${
+              onClick={isListening ? onStopListening : onStartListening}
+              className={`p-3 rounded-xl transition-all relative ${
                 isListening
                   ? "bg-accent text-accent-foreground shadow-[0_0_15px_hsl(270_80%_65%/0.4)]"
-                  : "bg-secondary/50 text-muted-foreground hover:text-foreground"
+                  : "bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary"
               }`}
             >
-              {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              {isListening ? (
+                <Square className="w-4 h-4" />
+              ) : (
+                <Mic className="w-4 h-4" />
+              )}
+              {isListening && (
+                <motion.div
+                  className="absolute inset-0 rounded-xl border-2 border-accent"
+                  animate={{ opacity: [1, 0.3, 1] }}
+                  transition={{ duration: 1, repeat: Infinity }}
+                />
+              )}
             </motion.button>
           )}
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            placeholder={isListening ? "Listening..." : "Type your question..."}
+            placeholder={isListening ? "Listening... tap ■ when done" : "Type your question..."}
             disabled={isListening}
             className="flex-1 bg-muted/50 border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-body disabled:opacity-50"
           />
