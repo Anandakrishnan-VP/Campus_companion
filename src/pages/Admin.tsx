@@ -306,6 +306,11 @@ const Admin = () => {
             </div>
           </Section>
         )}
+
+        {/* NOTIFICATIONS TAB */}
+        {activeTab === "notifications" && (
+          <NotificationManager user={user} displayName={user?.email?.replace("@campus.local", "") || "Admin"} />
+        )}
       </div>
 
       {/* Create Professor Modal */}

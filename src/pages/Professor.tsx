@@ -95,6 +95,10 @@ const Professor = () => {
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-display font-medium transition-all ${activeTab === "timetable" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/50"}`}>
           <Clock className="w-4 h-4" />My Timetable
         </button>
+        <button onClick={() => setActiveTab("notifications")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-display font-medium transition-all ${activeTab === "notifications" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/50"}`}>
+          <Bell className="w-4 h-4" />Notifications
+        </button>
       </div>
 
       <div className="max-w-3xl mx-auto px-6 py-6">
