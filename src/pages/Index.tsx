@@ -270,6 +270,12 @@ const Index = () => {
       </main>
 
       <EmergencyButton />
+
+      <footer className="relative z-10 text-center px-6 py-4 pb-6">
+        <p className="text-[10px] text-muted-foreground/50 font-display leading-relaxed max-w-lg mx-auto">
+          AI-generated responses may sometimes be inaccurate or incomplete. Please verify important information through official university sources.
+        </p>
+      </footer>
     </div>
   );
 };
