@@ -241,17 +241,7 @@ function FemaleAvatar({ isSpeaking, isListening, isThinking }: { isSpeaking: boo
         <boxGeometry args={[0.105, 0.035, 0.003]} />
         <meshStandardMaterial color="#a07830" metalness={0.7} roughness={0.2} />
       </mesh>
-      {/* YUKTI text */}
-      <Text
-        position={[-0.12, -0.05, 0.29]}
-        fontSize={0.018}
-        color="#1a2744"
-        anchorX="center"
-        anchorY="middle"
-        fontWeight={700}
-      >
-        YUKTI
-      </Text>
+      {/* YUKTI nameplate text removed for performance */}
 
       {/* ─── Neck ─── */}
       <mesh position={[0, 0.35, 0]}>
