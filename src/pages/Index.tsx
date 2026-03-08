@@ -178,12 +178,15 @@ const Index = () => {
           </h1>
           <p className="text-xs text-muted-foreground">Department of Computer Science</p>
         </div>
-        <Link
-          to="/login"
-          className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Settings className="w-5 h-5" />
-        </Link>
+        <div className="flex items-center gap-2">
+          <NotificationPanel />
+          <Link
+            to="/login"
+            className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Settings className="w-5 h-5" />
+          </Link>
+        </div>
       </header>
 
       <main className="relative z-10 max-w-5xl mx-auto px-4 pb-24">

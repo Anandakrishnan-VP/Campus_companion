@@ -57,6 +57,7 @@ const Admin = () => {
     { key: "timetable", label: "Timetable", icon: Clock },
     { key: "events", label: "Events", icon: Calendar },
     { key: "locations", label: "Locations", icon: MapPin },
+    { key: "notifications", label: "Notifications", icon: Bell },
   ];
 
   const resetFacultyForm = () => { setFName(""); setFAliases(""); setFDept(""); setFOffice(""); setFEmail(""); setFPhone(""); setEditingId(null); setShowFacultyForm(false); };
