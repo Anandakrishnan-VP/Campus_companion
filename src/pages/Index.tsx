@@ -207,6 +207,11 @@ const Index = () => {
       <main className="relative z-10 max-w-5xl mx-auto px-4 pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <div className="flex flex-col items-center gap-6 pt-4">
+            <Suspense fallback={
+              <div className="w-52 h-52 md:w-64 md:h-64 rounded-full bg-muted/20 flex items-center justify-center">
+                <span className="text-muted-foreground text-sm font-display">Loading avatar...</span>
+              </div>
+            }>
               <Avatar3D
                 isSpeaking={speech.isSpeaking}
                 isListening={speech.isListening}
@@ -214,6 +219,7 @@ const Index = () => {
                 status={getStatus()}
                 onTap={handleAvatarTap}
               />
+            </Suspense>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
