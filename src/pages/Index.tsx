@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, Suspense } from "react";
 import { motion } from "framer-motion";
-import { Settings } from "lucide-react";
+import { Settings, MessageSquareWarning } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationPanel from "@/components/kiosk/NotificationPanel";
 import Avatar3D from "@/components/kiosk/Avatar3D";
@@ -188,6 +188,13 @@ const Index = () => {
         </div>
         <div className="flex items-center gap-2">
           <NotificationPanel />
+          <Link
+            to="/issues"
+            className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"
+            title="Student Voice"
+          >
+            <MessageSquareWarning className="w-5 h-5" />
+          </Link>
           <Link
             to="/login"
             className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"

@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save, Brain } from "lucide-react";
+import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save, Brain, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationManager from "@/components/NotificationManager";
 import { useAuth } from "@/hooks/use-auth";
 import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import IssuesManager from "@/components/admin/IssuesManager";
 
-type Tab = "faculty" | "events" | "locations" | "brain" | "notifications";
+type Tab = "faculty" | "events" | "locations" | "brain" | "issues" | "notifications";
 
 interface ScheduleSlot {
   day_of_week: string;
@@ -102,6 +103,7 @@ const Admin = () => {
     { key: "events", label: "Events", icon: Calendar },
     { key: "locations", label: "Locations", icon: MapPin },
     { key: "brain", label: "Brain", icon: Brain },
+    { key: "issues", label: "Issues", icon: MessageSquare },
     { key: "notifications", label: "Notifications", icon: Bell },
   ];
 
@@ -554,6 +556,11 @@ const Admin = () => {
               {!showBrainForm && <AddButton label="Add Knowledge" onClick={() => setShowBrainForm(true)} />}
             </div>
           </Section>
+        )}
+
+        {/* ===== ISSUES TAB ===== */}
+        {activeTab === "issues" && user && (
+          <IssuesManager userId={user.id} />
         )}
 
         {/* ===== NOTIFICATIONS TAB ===== */}
