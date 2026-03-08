@@ -114,12 +114,23 @@ const Admin = () => {
   const resetFacultyForm = () => {
     setFName(""); setFAliases(""); setFDept(""); setFOffice(""); setFPhone("");
     setEditingId(null); setShowFacultyForm(false); setScheduleSlots([]);
+    setDaySlotInputs({}); setExpandedDays([]);
   };
 
-  const addSlotToList = () => {
-    if (!slotSubject.trim()) { toast({ title: "Subject required", variant: "destructive" }); return; }
-    setScheduleSlots(prev => [...prev, { day_of_week: slotDay, start_time: slotStart, end_time: slotEnd, subject: slotSubject, room: slotRoom }]);
-    setSlotSubject(""); setSlotRoom("");
+  const getDaySlotInput = (day: string): DaySlotInput => daySlotInputs[day] || { start_time: "09:00", end_time: "10:00", room: "" };
+
+  const updateDaySlotInput = (day: string, field: keyof DaySlotInput, value: string) => {
+    setDaySlotInputs(prev => ({ ...prev, [day]: { ...getDaySlotInput(day), [field]: value } }));
+  };
+
+  const toggleDay = (day: string) => {
+    setExpandedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
+  };
+
+  const addSlotForDay = (day: string) => {
+    const input = getDaySlotInput(day);
+    setScheduleSlots(prev => [...prev, { day_of_week: day, start_time: input.start_time, end_time: input.end_time, subject: "", room: input.room }]);
+    setDaySlotInputs(prev => ({ ...prev, [day]: { start_time: "09:00", end_time: "10:00", room: "" } }));
   };
 
   const removeSlotFromList = (idx: number) => {
@@ -181,12 +192,12 @@ const Admin = () => {
   const startEditSlot = (slot: any) => {
     setEditingSlotId(slot.id); setEsDay(slot.day_of_week);
     setEsStart(slot.start_time?.slice(0, 5)); setEsEnd(slot.end_time?.slice(0, 5));
-    setEsSubject(slot.subject); setEsRoom(slot.room);
+    setEsRoom(slot.room);
   };
 
   const saveEditSlot = async () => {
     if (!editingSlotId) return;
-    await supabase.from("timetable").update({ day_of_week: esDay, start_time: esStart, end_time: esEnd, subject: esSubject, room: esRoom }).eq("id", editingSlotId);
+    await supabase.from("timetable").update({ day_of_week: esDay, start_time: esStart, end_time: esEnd, subject: "", room: esRoom }).eq("id", editingSlotId);
     setEditingSlotId(null); refetchTimetable();
     toast({ title: "Slot updated" });
   };
@@ -197,9 +208,8 @@ const Admin = () => {
   };
 
   const addNewSlotToFaculty = async (facultyId: string) => {
-    if (!nsSubject.trim()) { toast({ title: "Subject required", variant: "destructive" }); return; }
-    await supabase.from("timetable").insert({ faculty_id: facultyId, day_of_week: nsDay, start_time: nsStart, end_time: nsEnd, subject: nsSubject, room: nsRoom });
-    setAddingSlotFor(null); setNsSubject(""); setNsRoom("");
+    await supabase.from("timetable").insert({ faculty_id: facultyId, day_of_week: nsDay, start_time: nsStart, end_time: nsEnd, subject: "", room: nsRoom });
+    setAddingSlotFor(null); setNsRoom("");
     refetchTimetable();
     toast({ title: "Slot added" });
   };
