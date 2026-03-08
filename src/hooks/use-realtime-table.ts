@@ -1,12 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export function useRealtimeTable(table: string, filter?: { column: string; value: string }) {
+export function useRealtimeTable(table: "faculty" | "timetable" | "events" | "locations" | "attendance", filter?: { column: string; value: string }) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    let query = supabase.from(table).select("*");
+    let query = (supabase.from(table) as any).select("*");
     if (filter) {
       query = query.eq(filter.column, filter.value);
     }
@@ -20,7 +20,7 @@ export function useRealtimeTable(table: string, filter?: { column: string; value
 
     const channel = supabase
       .channel(`${table}-changes-${Math.random()}`)
-      .on("postgres_changes", { event: "*", schema: "public", table }, () => {
+      .on("postgres_changes" as any, { event: "*", schema: "public", table } as any, () => {
         fetchData();
       })
       .subscribe();
