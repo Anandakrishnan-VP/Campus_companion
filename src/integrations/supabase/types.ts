@@ -132,6 +132,7 @@ export type Database = {
           block: string | null
           created_at: string
           description: string | null
+          directions: string
           floor: string | null
           id: string
           name: string
@@ -143,6 +144,7 @@ export type Database = {
           block?: string | null
           created_at?: string
           description?: string | null
+          directions?: string
           floor?: string | null
           id?: string
           name: string
@@ -154,6 +156,7 @@ export type Database = {
           block?: string | null
           created_at?: string
           description?: string | null
+          directions?: string
           floor?: string | null
           id?: string
           name?: string
