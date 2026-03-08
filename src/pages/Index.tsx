@@ -1,7 +1,8 @@
 import { useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
-import { Settings } from "lucide-react";
+import { Settings, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
+import NotificationPanel from "@/components/kiosk/NotificationPanel";
 import AvatarDisplay from "@/components/kiosk/AvatarDisplay";
 import ChatInterface, { type ChatMessage } from "@/components/kiosk/ChatInterface";
 import QuickActions from "@/components/kiosk/QuickActions";
