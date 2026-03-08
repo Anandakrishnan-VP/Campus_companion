@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Mic, Square, Loader2, Volume2, VolumeX, Languages } from "lucide-react";
+import { Send, Mic, Square, Loader2, Volume2, VolumeX, Languages, Trash2 } from "lucide-react";
 
 export interface ChatMessage {
   id: string;
