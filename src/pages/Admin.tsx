@@ -8,7 +8,7 @@ import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-type Tab = "faculty" | "events" | "locations" | "notifications";
+type Tab = "faculty" | "events" | "locations" | "brain" | "notifications";
 
 interface ScheduleSlot {
   day_of_week: string;
