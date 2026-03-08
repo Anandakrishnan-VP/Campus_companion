@@ -129,7 +129,7 @@ const Admin = () => {
         <Link to="/" className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft className="w-5 h-5" /></Link>
         <div className="flex-1">
           <h1 className="text-lg font-display font-bold text-foreground">Admin Panel</h1>
-          <p className="text-xs text-muted-foreground">{user?.email}</p>
+          <p className="text-xs text-muted-foreground">{user?.email?.replace("@campus.local", "")}</p>
         </div>
         <button onClick={() => setShowCreateProfessor(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent/20 text-accent text-xs font-display font-medium hover:bg-accent/30 transition-colors">
           <UserPlus className="w-4 h-4" /> Create Professor

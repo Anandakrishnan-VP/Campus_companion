@@ -80,7 +80,7 @@ const Professor = () => {
         <Link to="/" className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft className="w-5 h-5" /></Link>
         <div className="flex-1">
           <h1 className="text-lg font-display font-bold text-foreground">{myFaculty?.name || "Professor"}</h1>
-          <p className="text-xs text-muted-foreground">{user?.email} · {myFaculty?.department}</p>
+          <p className="text-xs text-muted-foreground">ID: {user?.email?.replace("@campus.local", "")} · {myFaculty?.department}</p>
         </div>
         <button onClick={signOut} className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground"><LogOut className="w-5 h-5" /></button>
       </header>

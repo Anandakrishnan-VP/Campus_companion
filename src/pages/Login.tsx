@@ -5,8 +5,10 @@ import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
+const toEmail = (id: string) => `${id.toLowerCase().trim()}@campus.local`;
+
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
@@ -14,7 +16,6 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if admin exists
     (async () => {
       const { data } = await supabase.from("user_roles").select("id").eq("role", "admin").limit(1);
       if (!data || data.length === 0) setShowSetup(true);
@@ -24,11 +25,11 @@ const Login = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim()) return;
+    if (!userId.trim() || !password.trim()) return;
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email: toEmail(userId), password });
       if (error) throw error;
 
       const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", data.user.id);
@@ -50,15 +51,15 @@ const Login = () => {
 
   const handleSetupAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email.trim() || !password.trim() || password.length < 6) {
-      toast({ title: "Invalid", description: "Email and password (min 6 chars) required", variant: "destructive" });
+    if (!userId.trim() || !password.trim() || password.length < 6) {
+      toast({ title: "Invalid", description: "ID and password (min 6 chars) required", variant: "destructive" });
       return;
     }
     setLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke("setup-admin", {
-        body: { email: email.trim(), password },
+        body: { admin_id: userId.trim(), password },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
@@ -96,14 +97,16 @@ const Login = () => {
               {showSetup ? "Setup Admin" : "Staff Login"}
             </h1>
             <p className="text-xs text-muted-foreground text-center">
-              {showSetup ? "Create the first admin account" : "Admin or Professor access"}
+              {showSetup ? "Create the first admin account" : "Enter your ID and password"}
             </p>
           </div>
 
           <form onSubmit={showSetup ? handleSetupAdmin : handleLogin} className="space-y-4">
             <div>
-              <label className="text-xs font-display text-muted-foreground mb-1 block">Email</label>
-              <input type="email" className={inputCls} value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" required />
+              <label className="text-xs font-display text-muted-foreground mb-1 block">
+                {showSetup ? "Admin ID" : "ID"}
+              </label>
+              <input type="text" className={inputCls} value={userId} onChange={e => setUserId(e.target.value)} placeholder={showSetup ? "admin" : "Your ID"} required />
             </div>
             <div>
               <label className="text-xs font-display text-muted-foreground mb-1 block">Password</label>
