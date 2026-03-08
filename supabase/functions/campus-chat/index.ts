@@ -15,7 +15,6 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Fetch live data from database
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -34,20 +33,20 @@ serve(async (req) => {
     const locationsData = locationsRes.data || [];
     const attendanceData = attendanceRes.data || [];
 
+    const dayOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
+    const currentTime = new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
+
     // Build dynamic context
     const facultyInfo = facultyData.map(f => {
       const schedule = timetableData.filter(t => t.faculty_id === f.id && !t.is_cancelled);
       const todayAttendance = attendanceData.find(a => a.faculty_id === f.id);
-      const presence = todayAttendance ? todayAttendance.status : (f.is_present ? "present" : "unknown");
-      return `- ${f.name} (aliases: ${f.aliases || "none"}) | Dept: ${f.department} | Office: ${f.office_location || "N/A"} | Status today: ${presence} | Schedule: ${schedule.map(s => `${s.day_of_week} ${s.start_time?.slice(0,5)}-${s.end_time?.slice(0,5)} ${s.subject} in ${s.room}`).join("; ") || "No schedule"}`;
+      const presence = todayAttendance ? todayAttendance.status : "unmarked";
+      return `- ${f.name} (aliases: ${f.aliases || "none"}) | Dept: ${f.department} | Office: ${f.office_location || "N/A"} | Phone: ${f.phone || "N/A"} | Today's status: ${presence} | Schedule: ${schedule.map(s => `${s.day_of_week} ${s.start_time?.slice(0,5)}-${s.end_time?.slice(0,5)} ${s.subject} in ${s.room}`).join("; ") || "No schedule"}`;
     }).join("\n");
 
-    const locationInfo = locationsData.map(l => `- ${l.name}: ${l.type}, ${l.floor || ""} ${l.block || ""}, ${l.description || ""} ${l.nearby_landmarks ? "Near: " + l.nearby_landmarks : ""}`).join("\n");
+    const locationInfo = locationsData.map(l => `- ${l.name}: ${l.type}, Floor: ${l.floor || "N/A"}, Block: ${l.block || "N/A"}, ${l.description || ""} ${l.nearby_landmarks ? "Near: " + l.nearby_landmarks : ""} | HOW TO REACH: ${(l as any).directions || "No directions available"}`).join("\n");
 
-    const eventInfo = eventsData.map(e => `- ${e.title}: ${e.location || "TBD"}, ${e.event_date} ${e.start_time?.slice(0,5) || ""}${e.end_time ? "-" + e.end_time.slice(0,5) : ""} ${e.description || ""}`).join("\n") || "No upcoming events.";
-
-    const dayOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
-    const currentTime = new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
+    const eventInfo = eventsData.map(e => `- ${e.title}: Venue: ${e.location || "TBD"}, Date: ${e.event_date}, Time: ${e.start_time?.slice(0,5) || "TBD"}${e.end_time ? "-" + e.end_time.slice(0,5) : ""}, ${e.description || ""}`).join("\n") || "No upcoming events.";
 
     const SYSTEM_PROMPT = `You are a friendly, intelligent AI campus assistant deployed at a university kiosk. Your name is "Campus AI".
 
@@ -59,11 +58,13 @@ PERSONALITY: Warm, helpful, conversational. Keep responses concise (2-4 sentence
 CONVERSATION RULES:
 1. MEMORY: Remember the full conversation and reference previous questions naturally.
 2. FOLLOW-UPS: After answering, ask a relevant follow-up when appropriate.
-3. TYPO TOLERANCE: Understand intent despite typos and grammar errors.
+3. TYPO TOLERANCE: Understand intent despite typos, grammar errors, and misspellings. If someone types "libaray" understand they mean "library". If they type "were is dr sham" understand they mean "where is Dr. Sharma". Always try to match partial/misspelled names against faculty names and aliases.
 4. AMBIGUITY: Ask clarifying questions when queries are ambiguous.
-5. AVAILABILITY: When asked if a professor is free, check their timetable for ${dayOfWeek} and compare with current time ${currentTime}. If they have no class at this time and are present, they are likely free.
+5. AVAILABILITY: When asked if a professor is free, check their timetable for ${dayOfWeek} and compare with current time ${currentTime}. If they have no class at this time and are present, they are likely free. If their status is "unmarked", say "Their attendance has not been marked for today, so their availability is uncertain."
 6. EMERGENCY: If user mentions fire, medical emergency, help, immediately provide emergency contacts.
 7. Respond as spoken text - avoid markdown, special characters, or emojis.
+8. NAVIGATION: When someone asks how to reach or find a place, use the "HOW TO REACH" directions from location data. Give step-by-step navigation naturally.
+9. ATTENDANCE STATUS: If a faculty member's status is "unmarked", explicitly say they haven't marked their attendance today and their presence is unknown. Do NOT assume they are present or absent.
 
 LIVE FACULTY DATA:
 ${facultyInfo || "No faculty data available yet. Admin has not added any faculty."}
