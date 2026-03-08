@@ -46,7 +46,7 @@ const Admin = () => {
   const [lDesc, setLDesc] = useState(""); const [lLandmarks, setLLandmarks] = useState("");
 
   // Create professor account
-  const [profEmail, setProfEmail] = useState(""); const [profPassword, setProfPassword] = useState("");
+  const [profId, setProfId] = useState(""); const [profPassword, setProfPassword] = useState("");
   const [profFacultyId, setProfFacultyId] = useState("");
 
   if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground font-display">Loading...</p></div>;
@@ -103,18 +103,17 @@ const Admin = () => {
   const deleteLocation = async (id: string) => { await supabase.from("locations").delete().eq("id", id); refetchLocations(); };
 
   const createProfessorAccount = async () => {
-    if (!profEmail.trim() || !profPassword || !profFacultyId) {
+    if (!profId.trim() || !profPassword || !profFacultyId) {
       toast({ title: "Fill all fields", variant: "destructive" }); return;
     }
     try {
-      // Create user via edge function
       const { data, error } = await supabase.functions.invoke("create-professor", {
-        body: { email: profEmail.trim(), password: profPassword, faculty_id: profFacultyId },
+        body: { professor_id: profId.trim(), password: profPassword, faculty_id: profFacultyId },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast({ title: "Professor account created!" });
-      setShowCreateProfessor(false); setProfEmail(""); setProfPassword(""); setProfFacultyId("");
+      setShowCreateProfessor(false); setProfId(""); setProfPassword(""); setProfFacultyId("");
       refetchFaculty();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
@@ -130,7 +129,7 @@ const Admin = () => {
         <Link to="/" className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft className="w-5 h-5" /></Link>
         <div className="flex-1">
           <h1 className="text-lg font-display font-bold text-foreground">Admin Panel</h1>
-          <p className="text-xs text-muted-foreground">{user?.email}</p>
+          <p className="text-xs text-muted-foreground">{user?.email?.replace("@campus.local", "")}</p>
         </div>
         <button onClick={() => setShowCreateProfessor(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent/20 text-accent text-xs font-display font-medium hover:bg-accent/30 transition-colors">
           <UserPlus className="w-4 h-4" /> Create Professor
@@ -321,7 +320,7 @@ const Admin = () => {
                 {faculty.filter((f: any) => !f.user_id).map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
               </select>
             </div>
-            <div><label className={labelCls}>Email *</label><input className={inputCls} value={profEmail} onChange={e => setProfEmail(e.target.value)} placeholder="professor@univ.edu" /></div>
+            <div><label className={labelCls}>Professor ID *</label><input className={inputCls} value={profId} onChange={e => setProfId(e.target.value)} placeholder="e.g. prof_john" /></div>
             <div><label className={labelCls}>Password *</label><input type="password" className={inputCls} value={profPassword} onChange={e => setProfPassword(e.target.value)} placeholder="min 6 characters" /></div>
             <button onClick={createProfessorAccount} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-display font-semibold text-sm">Create Account</button>
           </motion.div>

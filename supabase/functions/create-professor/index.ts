@@ -31,8 +31,10 @@ serve(async (req) => {
 
     if (!callerRoles || callerRoles.length === 0) throw new Error("Not authorized - admin only");
 
-    const { email, password, faculty_id } = await req.json();
-    if (!email || !password || !faculty_id) throw new Error("email, password, and faculty_id required");
+    const { professor_id, password, faculty_id } = await req.json();
+    if (!professor_id || !password || !faculty_id) throw new Error("professor_id, password, and faculty_id required");
+
+    const email = `${professor_id.toLowerCase().trim()}@campus.local`;
 
     // Create auth user
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({

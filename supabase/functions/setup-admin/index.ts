@@ -15,7 +15,6 @@ serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Check if any admin exists
     const { data: existingAdmins } = await supabase
       .from("user_roles")
       .select("id")
@@ -29,8 +28,10 @@ serve(async (req) => {
       });
     }
 
-    const { email, password } = await req.json();
-    if (!email || !password) throw new Error("email and password required");
+    const { admin_id, password } = await req.json();
+    if (!admin_id || !password) throw new Error("admin_id and password required");
+
+    const email = `${admin_id.toLowerCase().trim()}@campus.local`;
 
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
       email,
