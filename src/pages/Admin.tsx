@@ -8,7 +8,7 @@ import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-type Tab = "faculty" | "timetable" | "events" | "locations";
+type Tab = "faculty" | "timetable" | "events" | "locations" | "notifications";
 
 const Admin = () => {
   const { user, loading: authLoading, signOut } = useAuth("admin");
