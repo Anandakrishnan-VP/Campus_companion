@@ -1,9 +1,9 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, Suspense } from "react";
 import { motion } from "framer-motion";
-import { Settings, Bell } from "lucide-react";
+import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationPanel from "@/components/kiosk/NotificationPanel";
-import AvatarDisplay from "@/components/kiosk/AvatarDisplay";
+import Avatar3D from "@/components/kiosk/Avatar3D";
 import ChatInterface, { type ChatMessage } from "@/components/kiosk/ChatInterface";
 import QuickActions from "@/components/kiosk/QuickActions";
 import EmergencyButton from "@/components/kiosk/EmergencyButton";
@@ -74,12 +74,11 @@ const Index = () => {
     {
       id: "welcome",
       role: "assistant",
-      content: "Hello! I'm your Campus AI Assistant. I can help you find faculty, navigate the building, check events, and more. How can I help you today?",
+      content: "Hello! I'm your NCERC AI Assistant. I can help you find faculty, navigate the campus, check events, and more. How can I help you today?",
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
-  // Keep conversation history for AI context
   const conversationRef = useRef<{ role: string; content: string }[]>([]);
 
   const speech = useSpeech();
@@ -93,7 +92,6 @@ const Index = () => {
       setIsLoading(true);
       setIsThinking(true);
 
-      // Add to conversation history
       conversationRef.current.push({ role: "user", content: text });
 
       let assistantText = "";
@@ -120,7 +118,6 @@ const Index = () => {
             setIsLoading(false);
             setIsThinking(false);
             conversationRef.current.push({ role: "assistant", content: assistantText });
-            // Speak the response
             if (assistantText) {
               await speech.speak(assistantText);
             }
@@ -174,9 +171,9 @@ const Index = () => {
       <header className="relative z-10 flex items-center justify-between px-6 py-4">
         <div>
           <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
-            Campus <span className="text-primary glow-text">AI</span> Kiosk
+            NCERC <span className="text-primary glow-text">AI</span> Kiosk
           </h1>
-          <p className="text-xs text-muted-foreground">Department of Computer Science</p>
+          <p className="text-xs text-muted-foreground">Department of CSE(AI & ML)</p>
         </div>
         <div className="flex items-center gap-2">
           <NotificationPanel />
@@ -192,12 +189,18 @@ const Index = () => {
       <main className="relative z-10 max-w-5xl mx-auto px-4 pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <div className="flex flex-col items-center gap-6 pt-4">
-            <AvatarDisplay
-              isSpeaking={speech.isSpeaking}
-              isListening={speech.isListening}
-              isThinking={isThinking}
-              status={getStatus()}
-            />
+            <Suspense fallback={
+              <div className="w-48 h-48 md:w-56 md:h-56 rounded-full bg-muted/20 flex items-center justify-center">
+                <span className="text-muted-foreground text-sm font-display">Loading avatar...</span>
+              </div>
+            }>
+              <Avatar3D
+                isSpeaking={speech.isSpeaking}
+                isListening={speech.isListening}
+                isThinking={isThinking}
+                status={getStatus()}
+              />
+            </Suspense>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
