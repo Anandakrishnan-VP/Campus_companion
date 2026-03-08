@@ -580,6 +580,42 @@ const Admin = () => {
           </Section>
         )}
 
+        {/* ===== DEPARTMENTS TAB ===== */}
+        {activeTab === "departments" && (
+          <Section title="Departments & HODs">
+            {showDeptForm && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
+                <p className="text-sm font-display font-semibold text-foreground">{editingDeptId ? "Edit Department" : "Add New Department"}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className={labelCls}>Department Name *</label><input className={inputCls} value={deptName} onChange={e => setDeptName(e.target.value)} placeholder="Computer Science & Engineering" /></div>
+                  <div><label className={labelCls}>HOD Name *</label><input className={inputCls} value={deptHod} onChange={e => setDeptHod(e.target.value)} placeholder="Dr. John Doe" /></div>
+                  <div className="col-span-2"><label className={labelCls}>Description</label><input className={inputCls} value={deptDesc} onChange={e => setDeptDesc(e.target.value)} placeholder="Offers B.Tech, M.Tech programs in CSE with specializations in AI & ML" /></div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button onClick={resetDeptForm} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
+                  <button onClick={saveDepartment} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">{editingDeptId ? "Update" : "Add Department"}</button>
+                </div>
+              </motion.div>
+            )}
+            <div className="space-y-3">
+              {departments.map((d: any) => (
+                <div key={d.id} className="glass-card p-4 flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display font-semibold text-foreground">{d.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">HOD: {d.hod_name || "—"}</p>
+                    {d.description && <p className="text-xs text-muted-foreground mt-0.5">{d.description}</p>}
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={() => editDepartment(d)} className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground"><Edit2 className="w-4 h-4" /></button>
+                    <button onClick={() => deleteDepartment(d.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              ))}
+              {!showDeptForm && <AddButton label="Add Department" onClick={() => setShowDeptForm(true)} />}
+            </div>
+          </Section>
+        )}
+
         {/* ===== BRAIN TAB ===== */}
         {activeTab === "brain" && (
           <Section title="🧠 Brain — College Knowledge Base">
