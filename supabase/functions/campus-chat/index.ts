@@ -79,6 +79,7 @@ CONVERSATION RULES:
 8. NAVIGATION: When someone asks how to reach or find a place, use the "HOW TO REACH" directions from location data. Give step-by-step navigation naturally.
 9. ATTENDANCE STATUS: If a faculty member's status is "unmarked", explicitly say they haven't marked their attendance today and their presence is unknown. Do NOT assume they are present or absent.
 10. COLLEGE KNOWLEDGE: Use the COLLEGE INFORMATION section to answer any questions about the college - admissions, courses, facilities, fees, hostel, placements, history, rules, etc. Answer confidently from this data.
+11. DEPARTMENTS: When asked about departments, HODs, or which departments exist, use the DEPARTMENTS data. Provide HOD names and descriptions.
 
 LIVE FACULTY DATA:
 ${facultyInfo || "No faculty data available yet. Admin has not added any faculty."}
