@@ -48,24 +48,21 @@ const Admin = () => {
   const [fPhone, setFPhone] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Inline schedule slots for new faculty
+  // Inline schedule slots for new faculty - organized by day
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([]);
-  const [slotDay, setSlotDay] = useState("Monday"); const [slotStart, setSlotStart] = useState("09:00");
-  const [slotEnd, setSlotEnd] = useState("10:00"); const [slotSubject, setSlotSubject] = useState("");
-  const [slotRoom, setSlotRoom] = useState("");
+  const [daySlotInputs, setDaySlotInputs] = useState<Record<string, DaySlotInput>>({});
+  const [expandedDays, setExpandedDays] = useState<string[]>([]);
 
   // Expanded faculty card (to view/edit schedule)
   const [expandedFaculty, setExpandedFaculty] = useState<string | null>(null);
   // Editing existing timetable slot
   const [editingSlotId, setEditingSlotId] = useState<string | null>(null);
   const [esDay, setEsDay] = useState(""); const [esStart, setEsStart] = useState("");
-  const [esEnd, setEsEnd] = useState(""); const [esSubject, setEsSubject] = useState("");
-  const [esRoom, setEsRoom] = useState("");
+  const [esEnd, setEsEnd] = useState(""); const [esRoom, setEsRoom] = useState("");
   // Adding new slot to existing faculty
   const [addingSlotFor, setAddingSlotFor] = useState<string | null>(null);
   const [nsDay, setNsDay] = useState("Monday"); const [nsStart, setNsStart] = useState("09:00");
-  const [nsEnd, setNsEnd] = useState("10:00"); const [nsSubject, setNsSubject] = useState("");
-  const [nsRoom, setNsRoom] = useState("");
+  const [nsEnd, setNsEnd] = useState("10:00"); const [nsRoom, setNsRoom] = useState("");
 
   // Event form
   const [eName, setEName] = useState(""); const [eDesc, setEDesc] = useState("");
