@@ -508,6 +508,7 @@ const Avatar3D = ({ isSpeaking = false, isListening = false, isThinking = false,
           camera={{ position: [0, 0.2, 2.6], fov: 40 }}
           style={{ borderRadius: "50%", background: "transparent" }}
           gl={{ alpha: true, antialias: true }}
+          dpr={[1, 1.5]}
         >
           <ambientLight intensity={0.55} />
           <directionalLight position={[2, 3, 2]} intensity={1.3} color="#ffffff" />
