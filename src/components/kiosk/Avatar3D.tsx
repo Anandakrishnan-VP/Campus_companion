@@ -188,22 +188,70 @@ function FemaleAvatar({ isSpeaking, isListening, isThinking }: { isSpeaking: boo
 
   return (
     <group ref={bodyRef} position={[0, -0.15, 0]}>
-      {/* ─── Torso ─── */}
-      {/* Upper body - more feminine silhouette */}
+      {/* ─── Torso - Professional Uniform ─── */}
+      {/* Blazer body */}
       <mesh position={[0, -0.2, 0]}>
         <capsuleGeometry args={[0.28, 0.5, 12, 24]} />
-        <meshStandardMaterial color={dressColor} roughness={0.4} metalness={0.05} />
+        <meshStandardMaterial color={blazerColor} roughness={0.5} metalness={0.05} />
       </mesh>
       {/* Waist taper */}
       <mesh position={[0, -0.52, 0]}>
         <cylinderGeometry args={[0.22, 0.26, 0.15, 24]} />
-        <meshStandardMaterial color={dressColor} roughness={0.4} />
+        <meshStandardMaterial color={blazerColor} roughness={0.5} />
       </mesh>
-      {/* Collar / neckline accent */}
+      {/* White shirt collar V */}
       <mesh position={[0, 0.12, 0.18]}>
-        <torusGeometry args={[0.12, 0.015, 8, 24, Math.PI]} />
-        <meshStandardMaterial color={dressAccent} emissive={dressAccent} emissiveIntensity={0.3} />
+        <torusGeometry args={[0.12, 0.018, 8, 24, Math.PI]} />
+        <meshStandardMaterial color={shirtColor} />
       </mesh>
+      {/* Shirt front visible between lapels */}
+      <mesh position={[0, 0.0, 0.26]} scale={[0.55, 1.2, 0.1]}>
+        <boxGeometry args={[0.2, 0.25, 0.05]} />
+        <meshStandardMaterial color={shirtColor} roughness={0.3} />
+      </mesh>
+      {/* Left lapel */}
+      <mesh position={[-0.08, 0.02, 0.27]} rotation={[0, 0, -0.2]}>
+        <boxGeometry args={[0.08, 0.2, 0.015]} />
+        <meshStandardMaterial color={blazerColor} roughness={0.5} metalness={0.05} />
+      </mesh>
+      {/* Right lapel */}
+      <mesh position={[0.08, 0.02, 0.27]} rotation={[0, 0, 0.2]}>
+        <boxGeometry args={[0.08, 0.2, 0.015]} />
+        <meshStandardMaterial color={blazerColor} roughness={0.5} metalness={0.05} />
+      </mesh>
+      {/* Tie */}
+      <mesh position={[0, -0.08, 0.275]}>
+        <boxGeometry args={[0.04, 0.22, 0.01]} />
+        <meshStandardMaterial color={tieColor} roughness={0.3} metalness={0.1} />
+      </mesh>
+      {/* Tie knot */}
+      <mesh position={[0, 0.04, 0.28]}>
+        <sphereGeometry args={[0.018, 8, 8]} />
+        <meshStandardMaterial color={tieColor} roughness={0.3} />
+      </mesh>
+
+      {/* ─── YUKTI Nameplate ─── */}
+      {/* Gold plate background */}
+      <mesh position={[-0.12, -0.05, 0.285]}>
+        <boxGeometry args={[0.1, 0.03, 0.005]} />
+        <meshStandardMaterial color="#c9a84c" metalness={0.8} roughness={0.15} />
+      </mesh>
+      {/* Nameplate border */}
+      <mesh position={[-0.12, -0.05, 0.284]}>
+        <boxGeometry args={[0.105, 0.035, 0.003]} />
+        <meshStandardMaterial color="#a07830" metalness={0.7} roughness={0.2} />
+      </mesh>
+      {/* YUKTI text */}
+      <Text
+        position={[-0.12, -0.05, 0.29]}
+        fontSize={0.018}
+        color="#1a2744"
+        anchorX="center"
+        anchorY="middle"
+        fontWeight={700}
+      >
+        YUKTI
+      </Text>
 
       {/* ─── Neck ─── */}
       <mesh position={[0, 0.35, 0]}>
