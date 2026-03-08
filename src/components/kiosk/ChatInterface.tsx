@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Mic, Square, Loader2, Volume2, VolumeX } from "lucide-react";
+import { Send, Mic, Square, Loader2, Volume2, VolumeX, Languages } from "lucide-react";
 
 export interface ChatMessage {
   id: string;
@@ -20,6 +20,8 @@ interface ChatInterfaceProps {
   voiceSupported: boolean;
 }
 
+const TRANSLATE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate-malayalam`;
+
 const ChatInterface = ({
   messages,
   isLoading,
@@ -33,6 +35,9 @@ const ChatInterface = ({
 }: ChatInterfaceProps) => {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [translatedMap, setTranslatedMap] = useState<Record<string, string>>({});
+  const [translatingId, setTranslatingId] = useState<string | null>(null);
+  const [showTranslation, setShowTranslation] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -42,6 +47,34 @@ const ChatInterface = ({
     if (!input.trim() || isLoading) return;
     onSendMessage(input.trim());
     setInput("");
+  };
+
+  const handleTranslate = async (msgId: string, text: string) => {
+    // Toggle if already translated
+    if (translatedMap[msgId]) {
+      setShowTranslation(prev => ({ ...prev, [msgId]: !prev[msgId] }));
+      return;
+    }
+
+    setTranslatingId(msgId);
+    try {
+      const resp = await fetch(TRANSLATE_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ text }),
+      });
+      const data = await resp.json();
+      if (data.translated) {
+        setTranslatedMap(prev => ({ ...prev, [msgId]: data.translated }));
+        setShowTranslation(prev => ({ ...prev, [msgId]: true }));
+      }
+    } catch {
+      // silently fail
+    }
+    setTranslatingId(null);
   };
 
   return (
@@ -61,7 +94,7 @@ const ChatInterface = ({
               key={msg.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
             >
               <div
                 className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
@@ -70,8 +103,26 @@ const ChatInterface = ({
                     : "bg-secondary text-secondary-foreground rounded-bl-md"
                 }`}
               >
-                {msg.content}
+                {showTranslation[msg.id] && translatedMap[msg.id]
+                  ? translatedMap[msg.id]
+                  : msg.content}
               </div>
+
+              {/* Translate button for assistant messages */}
+              {msg.role === "assistant" && msg.id !== "welcome" && !msg.id.startsWith("error-") && (
+                <button
+                  onClick={() => handleTranslate(msg.id, msg.content)}
+                  disabled={translatingId === msg.id}
+                  className="flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md text-[10px] font-display text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors disabled:opacity-50"
+                >
+                  {translatingId === msg.id ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Languages className="w-3 h-3" />
+                  )}
+                  {showTranslation[msg.id] ? "English" : "മലയാളം"}
+                </button>
+              )}
             </motion.div>
           ))}
         </AnimatePresence>
@@ -106,10 +157,7 @@ const ChatInterface = ({
                 ))}
               </div>
               <span className="text-xs text-accent font-display flex-1">Listening... speak now</span>
-              <button
-                onClick={onStopListening}
-                className="px-3 py-1 rounded-md bg-accent text-accent-foreground text-xs font-display font-semibold"
-              >
+              <button onClick={onStopListening} className="px-3 py-1 rounded-md bg-accent text-accent-foreground text-xs font-display font-semibold">
                 Stop & Send
               </button>
             </div>
@@ -126,10 +174,7 @@ const ChatInterface = ({
             exit={{ height: 0, opacity: 0 }}
             className="px-4 overflow-hidden"
           >
-            <button
-              onClick={onStopSpeaking}
-              className="flex items-center gap-2 py-2 px-3 rounded-lg bg-primary/10 border border-primary/20 w-full text-left"
-            >
+            <button onClick={onStopSpeaking} className="flex items-center gap-2 py-2 px-3 rounded-lg bg-primary/10 border border-primary/20 w-full text-left">
               <Volume2 className="w-4 h-4 text-primary" />
               <span className="text-xs text-primary font-display flex-1">Speaking...</span>
               <span className="text-xs text-muted-foreground font-display flex items-center gap-1">
@@ -154,11 +199,7 @@ const ChatInterface = ({
                   : "bg-secondary/50 text-muted-foreground hover:text-foreground hover:bg-secondary"
               }`}
             >
-              {isListening ? (
-                <Square className="w-4 h-4" />
-              ) : (
-                <Mic className="w-4 h-4" />
-              )}
+              {isListening ? <Square className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
               {isListening && (
                 <motion.div
                   className="absolute inset-0 rounded-xl border-2 border-accent"
