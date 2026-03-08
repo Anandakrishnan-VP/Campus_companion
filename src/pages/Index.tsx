@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, Suspense } from "react";
+import ncercLogo from "@/assets/ncerc-logo.jpg";
 import { motion } from "framer-motion";
 import { Settings, MessageSquareWarning } from "lucide-react";
 import { Link } from "react-router-dom";
