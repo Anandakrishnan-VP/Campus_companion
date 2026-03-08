@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Mic, Square, Loader2, Volume2, VolumeX, Languages } from "lucide-react";
+import { Send, Mic, Square, Loader2, Volume2, VolumeX, Languages, Trash2 } from "lucide-react";
 
 export interface ChatMessage {
   id: string;
@@ -12,6 +12,7 @@ interface ChatInterfaceProps {
   messages: ChatMessage[];
   isLoading: boolean;
   onSendMessage: (message: string) => void;
+  onClearChat?: () => void;
   isListening: boolean;
   onStartListening: () => void;
   onStopListening: () => void;
@@ -26,6 +27,7 @@ const ChatInterface = ({
   messages,
   isLoading,
   onSendMessage,
+  onClearChat,
   isListening,
   onStartListening,
   onStopListening,
@@ -79,6 +81,19 @@ const ChatInterface = ({
 
   return (
     <div className="glass-card flex flex-col h-[400px] md:h-[450px]">
+      {/* Header with clear button */}
+      {messages.length > 1 && onClearChat && (
+        <div className="flex items-center justify-end px-4 pt-2.5 pb-0">
+          <button
+            onClick={onClearChat}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-display text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+            title="Clear conversation"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Clear Chat
+          </button>
+        </div>
+      )}
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && (

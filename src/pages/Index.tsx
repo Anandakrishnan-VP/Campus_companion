@@ -84,6 +84,16 @@ const Index = () => {
 
   const speech = useSpeech();
 
+  const handleClearChat = useCallback(() => {
+    speech.stopSpeaking();
+    conversationRef.current = [];
+    setMessages([{
+      id: "welcome",
+      role: "assistant",
+      content: "Hello! I'm Yukti, your NCERC AI Assistant. I can help you find faculty, navigate the campus, check events, and more. How can I help you today?",
+    }]);
+  }, [speech]);
+
   const handleSendMessage = useCallback(
     async (text: string) => {
       speech.stopSpeaking();
@@ -247,6 +257,7 @@ const Index = () => {
               messages={messages}
               isLoading={isLoading}
               onSendMessage={handleSendMessage}
+              onClearChat={handleClearChat}
               isListening={speech.isListening}
               onStartListening={handleStartListening}
               onStopListening={handleStopListening}
