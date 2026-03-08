@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, Suspense } from "react";
+import ncercLogo from "@/assets/ncerc-logo.jpg";
 import { motion } from "framer-motion";
 import { Settings, MessageSquareWarning } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -180,11 +181,14 @@ const Index = () => {
       </div>
 
       <header className="relative z-10 flex items-center justify-between px-6 py-4">
-        <div>
-          <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
-            NCERC <span className="text-primary glow-text">AI</span> Kiosk
-          </h1>
-          <p className="text-xs text-muted-foreground">Department of CSE(AI & ML)</p>
+        <div className="flex items-center gap-3">
+          <img src={ncercLogo} alt="NCERC Logo" className="w-10 h-10 rounded-full object-cover" />
+          <div>
+            <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
+              NCERC <span className="text-primary glow-text">AI</span> Kiosk
+            </h1>
+            <p className="text-xs text-muted-foreground">Department of CSE(AI & ML)</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <NotificationPanel />
