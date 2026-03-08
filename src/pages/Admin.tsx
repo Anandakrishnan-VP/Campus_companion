@@ -291,13 +291,13 @@ const Admin = () => {
                       <Clock className="w-4 h-4 text-primary" /> Weekly Schedule
                     </p>
 
-                    {/* Already added slots */}
+                    {/* Already added slots summary */}
                     {scheduleSlots.length > 0 && (
                       <div className="space-y-2 mb-3">
                         {scheduleSlots.map((s, i) => (
                           <div key={i} className="flex items-center justify-between bg-muted/30 rounded-lg px-3 py-2">
                             <span className="text-xs text-foreground font-body">
-                              {s.day_of_week} · {s.start_time}–{s.end_time} · {s.subject} · {s.room}
+                              {s.day_of_week} · {s.start_time}–{s.end_time} · {s.room || "No location"}
                             </span>
                             <button onClick={() => removeSlotFromList(i)} className="p-1 text-destructive hover:text-destructive/80"><X className="w-3.5 h-3.5" /></button>
                           </div>
@@ -305,22 +305,42 @@ const Admin = () => {
                       </div>
                     )}
 
-                    {/* Add slot form */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div><label className={labelCls}>Day</label>
-                        <select className={inputCls} value={slotDay} onChange={e => setSlotDay(e.target.value)}>
-                          {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
-                        </select>
-                      </div>
-                      <div><label className={labelCls}>Subject *</label><input className={inputCls} value={slotSubject} onChange={e => setSlotSubject(e.target.value)} placeholder="Data Structures" /></div>
-                      <div><label className={labelCls}>Start Time</label><input type="time" className={inputCls} value={slotStart} onChange={e => setSlotStart(e.target.value)} /></div>
-                      <div><label className={labelCls}>End Time</label><input type="time" className={inputCls} value={slotEnd} onChange={e => setSlotEnd(e.target.value)} /></div>
-                      <div><label className={labelCls}>Room</label><input className={inputCls} value={slotRoom} onChange={e => setSlotRoom(e.target.value)} placeholder="Room 301" /></div>
-                      <div className="flex items-end">
-                        <button onClick={addSlotToList} className="w-full px-3 py-2 rounded-lg bg-accent/20 text-accent-foreground text-sm font-display font-medium hover:bg-accent/30 transition-colors flex items-center justify-center gap-1">
-                          <Plus className="w-4 h-4" /> Add Slot
-                        </button>
-                      </div>
+                    {/* Day-by-day slot builder */}
+                    <div className="space-y-2">
+                      {DAYS.map(day => {
+                        const isOpen = expandedDays.includes(day);
+                        const daySlotsCount = scheduleSlots.filter(s => s.day_of_week === day).length;
+                        const input = getDaySlotInput(day);
+                        return (
+                          <div key={day} className="border border-border/30 rounded-lg overflow-hidden">
+                            <button onClick={() => toggleDay(day)} className="w-full flex items-center justify-between px-3 py-2 text-xs font-display font-medium text-foreground hover:bg-muted/30 transition-colors">
+                              <span>{day} {daySlotsCount > 0 && <span className="text-primary ml-1">({daySlotsCount} slot{daySlotsCount > 1 ? "s" : ""})</span>}</span>
+                              {isOpen ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+                            </button>
+                            {isOpen && (
+                              <div className="px-3 pb-3 pt-1 space-y-2 border-t border-border/20">
+                                {scheduleSlots.filter(s => s.day_of_week === day).map((s, i) => {
+                                  const globalIdx = scheduleSlots.findIndex(sl => sl === s);
+                                  return (
+                                    <div key={i} className="flex items-center justify-between bg-muted/20 rounded px-2 py-1">
+                                      <span className="text-xs text-foreground">{s.start_time}–{s.end_time} · {s.room || "No location"}</span>
+                                      <button onClick={() => removeSlotFromList(globalIdx)} className="p-0.5 text-destructive hover:text-destructive/80"><X className="w-3 h-3" /></button>
+                                    </div>
+                                  );
+                                })}
+                                <div className="grid grid-cols-3 gap-2">
+                                  <div><label className={labelCls}>Start Time</label><input type="time" className={inputCls} value={input.start_time} onChange={e => updateDaySlotInput(day, "start_time", e.target.value)} /></div>
+                                  <div><label className={labelCls}>End Time</label><input type="time" className={inputCls} value={input.end_time} onChange={e => updateDaySlotInput(day, "end_time", e.target.value)} /></div>
+                                  <div><label className={labelCls}>Location</label><input className={inputCls} value={input.room} onChange={e => updateDaySlotInput(day, "room", e.target.value)} placeholder="Room 301" /></div>
+                                </div>
+                                <button onClick={() => addSlotForDay(day)} className="w-full px-3 py-1.5 rounded-lg bg-accent/20 text-accent-foreground text-xs font-display font-medium hover:bg-accent/30 transition-colors flex items-center justify-center gap-1">
+                                  <Plus className="w-3.5 h-3.5" /> Add Slot for {day}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
