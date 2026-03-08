@@ -514,6 +514,48 @@ const Admin = () => {
           </Section>
         )}
 
+        {/* ===== BRAIN TAB ===== */}
+        {activeTab === "brain" && (
+          <Section title="🧠 Brain — College Knowledge Base">
+            <p className="text-xs text-muted-foreground mb-4">Add information about the college here. The AI assistant will use this to answer student queries.</p>
+            {showBrainForm && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className={labelCls}>Category</label>
+                    <select className={inputCls} value={kbCategory} onChange={e => setKbCategory(e.target.value)}>
+                      {BRAIN_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div><label className={labelCls}>Title *</label><input className={inputCls} value={kbTitle} onChange={e => setKbTitle(e.target.value)} placeholder="e.g. College Timings" /></div>
+                  <div className="col-span-2">
+                    <label className={labelCls}>Content *</label>
+                    <textarea className={inputCls + " min-h-[100px] resize-y"} value={kbContent} onChange={e => setKbContent(e.target.value)} placeholder="The college operates from 9:00 AM to 4:30 PM, Monday to Saturday. Library hours are 8:00 AM to 8:00 PM..." />
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button onClick={() => { setShowBrainForm(false); setKbTitle(""); setKbContent(""); }} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
+                  <button onClick={saveKBEntry} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">Add to Brain</button>
+                </div>
+              </motion.div>
+            )}
+            <div className="space-y-3">
+              {knowledgeBase.map((kb: any) => (
+                <div key={kb.id} className="glass-card p-4 flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-display font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">{kb.category}</span>
+                      <p className="font-display font-semibold text-foreground text-sm">{kb.title}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground whitespace-pre-line line-clamp-3">{kb.content}</p>
+                  </div>
+                  <button onClick={() => deleteKBEntry(kb.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              ))}
+              {!showBrainForm && <AddButton label="Add Knowledge" onClick={() => setShowBrainForm(true)} />}
+            </div>
+          </Section>
+        )}
+
         {/* ===== NOTIFICATIONS TAB ===== */}
         {activeTab === "notifications" && (
           <NotificationManager user={user} displayName="Admin" />
