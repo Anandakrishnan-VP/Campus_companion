@@ -163,6 +163,36 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          created_by: string
+          created_by_name: string
+          id: string
+          message: string
+          priority: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          created_by_name?: string
+          id?: string
+          message?: string
+          priority?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          created_by_name?: string
+          id?: string
+          message?: string
+          priority?: string
+          title?: string
+        }
+        Relationships: []
+      }
       timetable: {
         Row: {
           created_at: string
