@@ -127,6 +127,38 @@ export type Database = {
         }
         Relationships: []
       }
+      issue_votes: {
+        Row: {
+          created_at: string
+          device_id: string
+          id: string
+          issue_id: string
+          vote_type: string
+        }
+        Insert: {
+          created_at?: string
+          device_id: string
+          id?: string
+          issue_id: string
+          vote_type?: string
+        }
+        Update: {
+          created_at?: string
+          device_id?: string
+          id?: string
+          issue_id?: string
+          vote_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "issue_votes_issue_id_fkey"
+            columns: ["issue_id"]
+            isOneToOne: false
+            referencedRelation: "student_issues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       knowledge_base: {
         Row: {
           category: string
@@ -220,6 +252,51 @@ export type Database = {
           message?: string
           priority?: string
           title?: string
+        }
+        Relationships: []
+      }
+      student_issues: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          device_id: string
+          downvotes: number
+          id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string
+          title: string
+          updated_at: string
+          upvotes: number
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string
+          device_id?: string
+          downvotes?: number
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          upvotes?: number
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          device_id?: string
+          downvotes?: number
+          id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          upvotes?: number
         }
         Relationships: []
       }
