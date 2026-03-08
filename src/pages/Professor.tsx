@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 
 const Professor = () => {
   const { user, loading: authLoading, signOut, facultyId } = useAuth("professor");
-  const [activeTab, setActiveTab] = useState<"attendance" | "timetable">("attendance");
+  const [activeTab, setActiveTab] = useState<"attendance" | "timetable" | "notifications">("attendance");
   const [todayStatus, setTodayStatus] = useState<string | null>(null);
 
   const { data: myTimetable, refetch: refetchTimetable } = useRealtimeTable("timetable", facultyId ? { column: "faculty_id", value: facultyId } : undefined);
