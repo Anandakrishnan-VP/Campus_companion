@@ -35,6 +35,7 @@ serve(async (req) => {
     const locationsData = locationsRes.data || [];
     const attendanceData = attendanceRes.data || [];
     const kbData = kbRes.data || [];
+    const deptsData = deptsRes.data || [];
 
     const dayOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
     const currentTime = new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
