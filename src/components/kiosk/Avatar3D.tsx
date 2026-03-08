@@ -39,7 +39,7 @@ function FemaleAvatar({ isSpeaking, isListening, isThinking }: { isSpeaking: boo
   const blazerColor = useMemo(() => new THREE.Color("#1a2744"), []);
   const shirtColor = useMemo(() => new THREE.Color("#f0eff4"), []);
   const tieColor = useMemo(() => new THREE.Color("#0d8a94"), []);
-  const goldColor = useMemo(() => new THREE.Color("#c9a84c"), []);
+  const eyeColor = useMemo(() => new THREE.Color("#3a2215"), []);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
