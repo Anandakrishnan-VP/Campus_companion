@@ -42,6 +42,11 @@ const Admin = () => {
   const [showEventForm, setShowEventForm] = useState(false);
   const [showLocationForm, setShowLocationForm] = useState(false);
   const [showBrainForm, setShowBrainForm] = useState(false);
+  const [showDeptForm, setShowDeptForm] = useState(false);
+  const [deptName, setDeptName] = useState("");
+  const [deptHod, setDeptHod] = useState("");
+  const [deptDesc, setDeptDesc] = useState("");
+  const [editingDeptId, setEditingDeptId] = useState<string | null>(null);
 
   // Faculty form
   const [fName, setFName] = useState(""); const [fAliases, setFAliases] = useState("");
