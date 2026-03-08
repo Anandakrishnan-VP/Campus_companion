@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, Clock, Calendar, MapPin, Plus, Trash2, Edit2, X, Check, LogOut, UserPlus } from "lucide-react";
+import { ArrowLeft, Users, Clock, Calendar, MapPin, Plus, Trash2, Edit2, X, Check, LogOut, UserPlus, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
+import NotificationManager from "@/components/NotificationManager";
 import { useAuth } from "@/hooks/use-auth";
 import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-type Tab = "faculty" | "timetable" | "events" | "locations";
+type Tab = "faculty" | "timetable" | "events" | "locations" | "notifications";
 
 const Admin = () => {
   const { user, loading: authLoading, signOut } = useAuth("admin");
@@ -56,6 +57,7 @@ const Admin = () => {
     { key: "timetable", label: "Timetable", icon: Clock },
     { key: "events", label: "Events", icon: Calendar },
     { key: "locations", label: "Locations", icon: MapPin },
+    { key: "notifications", label: "Notifications", icon: Bell },
   ];
 
   const resetFacultyForm = () => { setFName(""); setFAliases(""); setFDept(""); setFOffice(""); setFEmail(""); setFPhone(""); setEditingId(null); setShowFacultyForm(false); };
@@ -303,6 +305,11 @@ const Admin = () => {
               {!showLocationForm && <AddButton label="Add Location" onClick={() => setShowLocationForm(true)} />}
             </div>
           </Section>
+        )}
+
+        {/* NOTIFICATIONS TAB */}
+        {activeTab === "notifications" && (
+          <NotificationManager user={user} displayName={user?.email?.replace("@campus.local", "") || "Admin"} />
         )}
       </div>
 

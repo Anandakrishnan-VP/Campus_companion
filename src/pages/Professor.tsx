@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, LogOut, Calendar, Clock, Check, X, Edit2 } from "lucide-react";
+import { ArrowLeft, LogOut, Calendar, Clock, Check, X, Edit2, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
+import NotificationManager from "@/components/NotificationManager";
 import { useAuth } from "@/hooks/use-auth";
 import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 
 const Professor = () => {
   const { user, loading: authLoading, signOut, facultyId } = useAuth("professor");
-  const [activeTab, setActiveTab] = useState<"attendance" | "timetable">("attendance");
+  const [activeTab, setActiveTab] = useState<"attendance" | "timetable" | "notifications">("attendance");
   const [todayStatus, setTodayStatus] = useState<string | null>(null);
 
   const { data: myTimetable, refetch: refetchTimetable } = useRealtimeTable("timetable", facultyId ? { column: "faculty_id", value: facultyId } : undefined);
@@ -93,6 +94,10 @@ const Professor = () => {
         <button onClick={() => setActiveTab("timetable")}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-display font-medium transition-all ${activeTab === "timetable" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/50"}`}>
           <Clock className="w-4 h-4" />My Timetable
+        </button>
+        <button onClick={() => setActiveTab("notifications")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-display font-medium transition-all ${activeTab === "notifications" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/50"}`}>
+          <Bell className="w-4 h-4" />Notifications
         </button>
       </div>
 
@@ -186,6 +191,12 @@ const Professor = () => {
                 <p className="text-muted-foreground text-sm">No timetable slots assigned yet. Contact admin to set up your schedule.</p>
               </div>
             )}
+          </motion.div>
+        )}
+
+        {activeTab === "notifications" && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <NotificationManager user={user} displayName={myFaculty?.name || "Professor"} />
           </motion.div>
         )}
       </div>
