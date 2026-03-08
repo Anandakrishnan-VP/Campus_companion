@@ -257,6 +257,7 @@ const Index = () => {
               messages={messages}
               isLoading={isLoading}
               onSendMessage={handleSendMessage}
+              onClearChat={handleClearChat}
               isListening={speech.isListening}
               onStartListening={handleStartListening}
               onStopListening={handleStopListening}
