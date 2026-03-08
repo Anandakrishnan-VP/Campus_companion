@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, Clock, Calendar, MapPin, Plus, Trash2, Edit2, X, Check, LogOut, UserPlus } from "lucide-react";
+import { ArrowLeft, Users, Clock, Calendar, MapPin, Plus, Trash2, Edit2, X, Check, LogOut, UserPlus, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
+import NotificationManager from "@/components/NotificationManager";
 import { useAuth } from "@/hooks/use-auth";
 import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
