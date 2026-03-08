@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Settings, MessageSquareWarning } from "lucide-react";
 import { Link } from "react-router-dom";
