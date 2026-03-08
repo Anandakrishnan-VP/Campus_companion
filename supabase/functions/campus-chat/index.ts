@@ -19,13 +19,14 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const [facultyRes, timetableRes, eventsRes, locationsRes, attendanceRes, kbRes] = await Promise.all([
+    const [facultyRes, timetableRes, eventsRes, locationsRes, attendanceRes, kbRes, deptsRes] = await Promise.all([
       supabase.from("faculty").select("*"),
       supabase.from("timetable").select("*"),
       supabase.from("events").select("*").gte("event_date", new Date().toISOString().split("T")[0]),
       supabase.from("locations").select("*"),
       supabase.from("attendance").select("*").eq("date", new Date().toISOString().split("T")[0]),
       supabase.from("knowledge_base").select("*"),
+      supabase.from("departments").select("*"),
     ]);
 
     const facultyData = facultyRes.data || [];
@@ -34,6 +35,7 @@ serve(async (req) => {
     const locationsData = locationsRes.data || [];
     const attendanceData = attendanceRes.data || [];
     const kbData = kbRes.data || [];
+    const deptsData = deptsRes.data || [];
 
     const dayOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
     const currentTime = new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
@@ -49,6 +51,10 @@ serve(async (req) => {
     const locationInfo = locationsData.map(l => `- ${l.name}: ${l.type}, Floor: ${l.floor || "N/A"}, Block: ${l.block || "N/A"}, ${l.description || ""} ${l.nearby_landmarks ? "Near: " + l.nearby_landmarks : ""} | HOW TO REACH: ${(l as any).directions || "No directions available"}`).join("\n");
 
     const eventInfo = eventsData.map(e => `- ${e.title}: Venue: ${e.location || "TBD"}, Date: ${e.event_date}, Time: ${e.start_time?.slice(0,5) || "TBD"}${e.end_time ? "-" + e.end_time.slice(0,5) : ""}, ${e.description || ""}`).join("\n") || "No upcoming events.";
+
+    const deptInfo = deptsData.length > 0
+      ? deptsData.map((d: any) => `- ${d.name}: HOD: ${d.hod_name || "N/A"}${d.description ? ", " + d.description : ""}`).join("\n")
+      : "No department data available yet.";
 
     // Knowledge base grouped by category
     const kbInfo = kbData.length > 0
@@ -73,6 +79,7 @@ CONVERSATION RULES:
 8. NAVIGATION: When someone asks how to reach or find a place, use the "HOW TO REACH" directions from location data. Give step-by-step navigation naturally.
 9. ATTENDANCE STATUS: If a faculty member's status is "unmarked", explicitly say they haven't marked their attendance today and their presence is unknown. Do NOT assume they are present or absent.
 10. COLLEGE KNOWLEDGE: Use the COLLEGE INFORMATION section to answer any questions about the college - admissions, courses, facilities, fees, hostel, placements, history, rules, etc. Answer confidently from this data.
+11. DEPARTMENTS: When asked about departments, HODs, or which departments exist, use the DEPARTMENTS data. Provide HOD names and descriptions.
 
 LIVE FACULTY DATA:
 ${facultyInfo || "No faculty data available yet. Admin has not added any faculty."}
@@ -82,6 +89,9 @@ ${locationInfo || "No location data available yet."}
 
 LIVE EVENTS:
 ${eventInfo}
+
+DEPARTMENTS:
+${deptInfo}
 
 COLLEGE INFORMATION (from admin's Brain):
 ${kbInfo}

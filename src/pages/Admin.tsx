@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save, Brain, MessageSquare } from "lucide-react";
+import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save, Brain, MessageSquare, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationManager from "@/components/NotificationManager";
 import { useAuth } from "@/hooks/use-auth";
@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import IssuesManager from "@/components/admin/IssuesManager";
 
-type Tab = "faculty" | "events" | "locations" | "brain" | "issues" | "notifications";
+type Tab = "faculty" | "events" | "locations" | "departments" | "brain" | "issues" | "notifications";
 
 interface ScheduleSlot {
   day_of_week: string;
@@ -36,11 +36,17 @@ const Admin = () => {
   const { data: events, refetch: refetchEvents } = useRealtimeTable("events");
   const { data: locations, refetch: refetchLocations } = useRealtimeTable("locations");
   const { data: knowledgeBase, refetch: refetchKB } = useRealtimeTable("knowledge_base");
+  const { data: departments, refetch: refetchDepts } = useRealtimeTable("departments" as any);
 
   const [showFacultyForm, setShowFacultyForm] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
   const [showLocationForm, setShowLocationForm] = useState(false);
   const [showBrainForm, setShowBrainForm] = useState(false);
+  const [showDeptForm, setShowDeptForm] = useState(false);
+  const [deptName, setDeptName] = useState("");
+  const [deptHod, setDeptHod] = useState("");
+  const [deptDesc, setDeptDesc] = useState("");
+  const [editingDeptId, setEditingDeptId] = useState<string | null>(null);
 
   // Faculty form
   const [fName, setFName] = useState(""); const [fAliases, setFAliases] = useState("");
@@ -105,6 +111,7 @@ const Admin = () => {
     { key: "faculty", label: "Faculty & Schedule", icon: Users },
     { key: "events", label: "Events", icon: Calendar },
     { key: "locations", label: "Locations", icon: MapPin },
+    { key: "departments", label: "Departments", icon: Building2 },
     { key: "brain", label: "Brain", icon: Brain },
     { key: "issues", label: "Issues", icon: MessageSquare },
     { key: "notifications", label: "Notifications", icon: Bell },
@@ -229,6 +236,32 @@ const Admin = () => {
     setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); setLDirections(""); refetchLocations();
   };
   const deleteLocation = async (id: string) => { await supabase.from("locations").delete().eq("id", id); refetchLocations(); };
+
+  // --- Department helpers ---
+  const resetDeptForm = () => { setDeptName(""); setDeptHod(""); setDeptDesc(""); setEditingDeptId(null); setShowDeptForm(false); };
+
+  const saveDepartment = async () => {
+    if (!deptName.trim()) { toast({ title: "Department name required", variant: "destructive" }); return; }
+    const payload = { name: deptName.trim(), hod_name: deptHod.trim(), description: deptDesc.trim() };
+    if (editingDeptId) {
+      await (supabase.from("departments") as any).update(payload).eq("id", editingDeptId);
+      toast({ title: "Department updated" });
+    } else {
+      await (supabase.from("departments") as any).insert(payload);
+      toast({ title: "Department added" });
+    }
+    resetDeptForm(); refetchDepts();
+  };
+
+  const editDepartment = (d: any) => {
+    setDeptName(d.name); setDeptHod(d.hod_name || ""); setDeptDesc(d.description || "");
+    setEditingDeptId(d.id); setShowDeptForm(true);
+  };
+
+  const deleteDepartment = async (id: string) => {
+    await (supabase.from("departments") as any).delete().eq("id", id);
+    refetchDepts();
+  };
 
   const copyCredentials = () => {
     if (!profCredentials) return;
@@ -543,6 +576,42 @@ const Admin = () => {
                 </div>
               ))}
               {!showLocationForm && <AddButton label="Add Location" onClick={() => setShowLocationForm(true)} />}
+            </div>
+          </Section>
+        )}
+
+        {/* ===== DEPARTMENTS TAB ===== */}
+        {activeTab === "departments" && (
+          <Section title="Departments & HODs">
+            {showDeptForm && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
+                <p className="text-sm font-display font-semibold text-foreground">{editingDeptId ? "Edit Department" : "Add New Department"}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className={labelCls}>Department Name *</label><input className={inputCls} value={deptName} onChange={e => setDeptName(e.target.value)} placeholder="Computer Science & Engineering" /></div>
+                  <div><label className={labelCls}>HOD Name *</label><input className={inputCls} value={deptHod} onChange={e => setDeptHod(e.target.value)} placeholder="Dr. John Doe" /></div>
+                  <div className="col-span-2"><label className={labelCls}>Description</label><input className={inputCls} value={deptDesc} onChange={e => setDeptDesc(e.target.value)} placeholder="Offers B.Tech, M.Tech programs in CSE with specializations in AI & ML" /></div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button onClick={resetDeptForm} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
+                  <button onClick={saveDepartment} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">{editingDeptId ? "Update" : "Add Department"}</button>
+                </div>
+              </motion.div>
+            )}
+            <div className="space-y-3">
+              {departments.map((d: any) => (
+                <div key={d.id} className="glass-card p-4 flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-display font-semibold text-foreground">{d.name}</p>
+                    <p className="text-xs text-muted-foreground mt-1">HOD: {d.hod_name || "—"}</p>
+                    {d.description && <p className="text-xs text-muted-foreground mt-0.5">{d.description}</p>}
+                  </div>
+                  <div className="flex gap-1">
+                    <button onClick={() => editDepartment(d)} className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground"><Edit2 className="w-4 h-4" /></button>
+                    <button onClick={() => deleteDepartment(d.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
+                  </div>
+                </div>
+              ))}
+              {!showDeptForm && <AddButton label="Add Department" onClick={() => setShowDeptForm(true)} />}
             </div>
           </Section>
         )}
