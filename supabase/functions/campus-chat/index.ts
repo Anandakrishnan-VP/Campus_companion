@@ -52,6 +52,10 @@ serve(async (req) => {
 
     const eventInfo = eventsData.map(e => `- ${e.title}: Venue: ${e.location || "TBD"}, Date: ${e.event_date}, Time: ${e.start_time?.slice(0,5) || "TBD"}${e.end_time ? "-" + e.end_time.slice(0,5) : ""}, ${e.description || ""}`).join("\n") || "No upcoming events.";
 
+    const deptInfo = deptsData.length > 0
+      ? deptsData.map((d: any) => `- ${d.name}: HOD: ${d.hod_name || "N/A"}${d.description ? ", " + d.description : ""}`).join("\n")
+      : "No department data available yet.";
+
     // Knowledge base grouped by category
     const kbInfo = kbData.length > 0
       ? kbData.map(kb => `[${kb.category}] ${kb.title}: ${kb.content}`).join("\n")
