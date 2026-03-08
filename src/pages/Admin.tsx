@@ -19,6 +19,12 @@ interface ScheduleSlot {
   room: string;
 }
 
+interface DaySlotInput {
+  start_time: string;
+  end_time: string;
+  room: string;
+}
+
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const Admin = () => {
@@ -42,24 +48,21 @@ const Admin = () => {
   const [fPhone, setFPhone] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  // Inline schedule slots for new faculty
+  // Inline schedule slots for new faculty - organized by day
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([]);
-  const [slotDay, setSlotDay] = useState("Monday"); const [slotStart, setSlotStart] = useState("09:00");
-  const [slotEnd, setSlotEnd] = useState("10:00"); const [slotSubject, setSlotSubject] = useState("");
-  const [slotRoom, setSlotRoom] = useState("");
+  const [daySlotInputs, setDaySlotInputs] = useState<Record<string, DaySlotInput>>({});
+  const [expandedDays, setExpandedDays] = useState<string[]>([]);
 
   // Expanded faculty card (to view/edit schedule)
   const [expandedFaculty, setExpandedFaculty] = useState<string | null>(null);
   // Editing existing timetable slot
   const [editingSlotId, setEditingSlotId] = useState<string | null>(null);
   const [esDay, setEsDay] = useState(""); const [esStart, setEsStart] = useState("");
-  const [esEnd, setEsEnd] = useState(""); const [esSubject, setEsSubject] = useState("");
-  const [esRoom, setEsRoom] = useState("");
+  const [esEnd, setEsEnd] = useState(""); const [esRoom, setEsRoom] = useState("");
   // Adding new slot to existing faculty
   const [addingSlotFor, setAddingSlotFor] = useState<string | null>(null);
   const [nsDay, setNsDay] = useState("Monday"); const [nsStart, setNsStart] = useState("09:00");
-  const [nsEnd, setNsEnd] = useState("10:00"); const [nsSubject, setNsSubject] = useState("");
-  const [nsRoom, setNsRoom] = useState("");
+  const [nsEnd, setNsEnd] = useState("10:00"); const [nsRoom, setNsRoom] = useState("");
 
   // Event form
   const [eName, setEName] = useState(""); const [eDesc, setEDesc] = useState("");
@@ -111,12 +114,23 @@ const Admin = () => {
   const resetFacultyForm = () => {
     setFName(""); setFAliases(""); setFDept(""); setFOffice(""); setFPhone("");
     setEditingId(null); setShowFacultyForm(false); setScheduleSlots([]);
+    setDaySlotInputs({}); setExpandedDays([]);
   };
 
-  const addSlotToList = () => {
-    if (!slotSubject.trim()) { toast({ title: "Subject required", variant: "destructive" }); return; }
-    setScheduleSlots(prev => [...prev, { day_of_week: slotDay, start_time: slotStart, end_time: slotEnd, subject: slotSubject, room: slotRoom }]);
-    setSlotSubject(""); setSlotRoom("");
+  const getDaySlotInput = (day: string): DaySlotInput => daySlotInputs[day] || { start_time: "09:00", end_time: "10:00", room: "" };
+
+  const updateDaySlotInput = (day: string, field: keyof DaySlotInput, value: string) => {
+    setDaySlotInputs(prev => ({ ...prev, [day]: { ...getDaySlotInput(day), [field]: value } }));
+  };
+
+  const toggleDay = (day: string) => {
+    setExpandedDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]);
+  };
+
+  const addSlotForDay = (day: string) => {
+    const input = getDaySlotInput(day);
+    setScheduleSlots(prev => [...prev, { day_of_week: day, start_time: input.start_time, end_time: input.end_time, subject: "", room: input.room }]);
+    setDaySlotInputs(prev => ({ ...prev, [day]: { start_time: "09:00", end_time: "10:00", room: "" } }));
   };
 
   const removeSlotFromList = (idx: number) => {
@@ -178,12 +192,12 @@ const Admin = () => {
   const startEditSlot = (slot: any) => {
     setEditingSlotId(slot.id); setEsDay(slot.day_of_week);
     setEsStart(slot.start_time?.slice(0, 5)); setEsEnd(slot.end_time?.slice(0, 5));
-    setEsSubject(slot.subject); setEsRoom(slot.room);
+    setEsRoom(slot.room);
   };
 
   const saveEditSlot = async () => {
     if (!editingSlotId) return;
-    await supabase.from("timetable").update({ day_of_week: esDay, start_time: esStart, end_time: esEnd, subject: esSubject, room: esRoom }).eq("id", editingSlotId);
+    await supabase.from("timetable").update({ day_of_week: esDay, start_time: esStart, end_time: esEnd, subject: "", room: esRoom }).eq("id", editingSlotId);
     setEditingSlotId(null); refetchTimetable();
     toast({ title: "Slot updated" });
   };
@@ -194,9 +208,8 @@ const Admin = () => {
   };
 
   const addNewSlotToFaculty = async (facultyId: string) => {
-    if (!nsSubject.trim()) { toast({ title: "Subject required", variant: "destructive" }); return; }
-    await supabase.from("timetable").insert({ faculty_id: facultyId, day_of_week: nsDay, start_time: nsStart, end_time: nsEnd, subject: nsSubject, room: nsRoom });
-    setAddingSlotFor(null); setNsSubject(""); setNsRoom("");
+    await supabase.from("timetable").insert({ faculty_id: facultyId, day_of_week: nsDay, start_time: nsStart, end_time: nsEnd, subject: "", room: nsRoom });
+    setAddingSlotFor(null); setNsRoom("");
     refetchTimetable();
     toast({ title: "Slot added" });
   };
@@ -268,7 +281,7 @@ const Admin = () => {
                   <div><label className={labelCls}>Aliases (nicknames)</label><input className={inputCls} value={fAliases} onChange={e => setFAliases(e.target.value)} placeholder="Prof Name, Name Sir" /></div>
                   <div><label className={labelCls}>Department *</label><input className={inputCls} value={fDept} onChange={e => setFDept(e.target.value)} placeholder="Computer Science" /></div>
                   <div><label className={labelCls}>Office Location *</label><input className={inputCls} value={fOffice} onChange={e => setFOffice(e.target.value)} placeholder="Room 204, Block A" /></div>
-                  <div><label className={labelCls}>Phone Number *</label><input className={inputCls} value={fPhone} onChange={e => setFPhone(e.target.value)} placeholder="+91-XXXXX-XXXXX" /></div>
+                  <div><label className={labelCls}>Phone Number</label><input className={inputCls} value={fPhone} onChange={e => setFPhone(e.target.value)} placeholder="+91-XXXXX-XXXXX" /></div>
                 </div>
 
                 {/* Schedule section (only for new faculty) */}
@@ -278,13 +291,13 @@ const Admin = () => {
                       <Clock className="w-4 h-4 text-primary" /> Weekly Schedule
                     </p>
 
-                    {/* Already added slots */}
+                    {/* Already added slots summary */}
                     {scheduleSlots.length > 0 && (
                       <div className="space-y-2 mb-3">
                         {scheduleSlots.map((s, i) => (
                           <div key={i} className="flex items-center justify-between bg-muted/30 rounded-lg px-3 py-2">
                             <span className="text-xs text-foreground font-body">
-                              {s.day_of_week} · {s.start_time}–{s.end_time} · {s.subject} · {s.room}
+                              {s.day_of_week} · {s.start_time}–{s.end_time} · {s.room || "No location"}
                             </span>
                             <button onClick={() => removeSlotFromList(i)} className="p-1 text-destructive hover:text-destructive/80"><X className="w-3.5 h-3.5" /></button>
                           </div>
@@ -292,22 +305,42 @@ const Admin = () => {
                       </div>
                     )}
 
-                    {/* Add slot form */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div><label className={labelCls}>Day</label>
-                        <select className={inputCls} value={slotDay} onChange={e => setSlotDay(e.target.value)}>
-                          {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
-                        </select>
-                      </div>
-                      <div><label className={labelCls}>Subject *</label><input className={inputCls} value={slotSubject} onChange={e => setSlotSubject(e.target.value)} placeholder="Data Structures" /></div>
-                      <div><label className={labelCls}>Start Time</label><input type="time" className={inputCls} value={slotStart} onChange={e => setSlotStart(e.target.value)} /></div>
-                      <div><label className={labelCls}>End Time</label><input type="time" className={inputCls} value={slotEnd} onChange={e => setSlotEnd(e.target.value)} /></div>
-                      <div><label className={labelCls}>Room</label><input className={inputCls} value={slotRoom} onChange={e => setSlotRoom(e.target.value)} placeholder="Room 301" /></div>
-                      <div className="flex items-end">
-                        <button onClick={addSlotToList} className="w-full px-3 py-2 rounded-lg bg-accent/20 text-accent-foreground text-sm font-display font-medium hover:bg-accent/30 transition-colors flex items-center justify-center gap-1">
-                          <Plus className="w-4 h-4" /> Add Slot
-                        </button>
-                      </div>
+                    {/* Day-by-day slot builder */}
+                    <div className="space-y-2">
+                      {DAYS.map(day => {
+                        const isOpen = expandedDays.includes(day);
+                        const daySlotsCount = scheduleSlots.filter(s => s.day_of_week === day).length;
+                        const input = getDaySlotInput(day);
+                        return (
+                          <div key={day} className="border border-border/30 rounded-lg overflow-hidden">
+                            <button onClick={() => toggleDay(day)} className="w-full flex items-center justify-between px-3 py-2 text-xs font-display font-medium text-foreground hover:bg-muted/30 transition-colors">
+                              <span>{day} {daySlotsCount > 0 && <span className="text-primary ml-1">({daySlotsCount} slot{daySlotsCount > 1 ? "s" : ""})</span>}</span>
+                              {isOpen ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
+                            </button>
+                            {isOpen && (
+                              <div className="px-3 pb-3 pt-1 space-y-2 border-t border-border/20">
+                                {scheduleSlots.filter(s => s.day_of_week === day).map((s, i) => {
+                                  const globalIdx = scheduleSlots.findIndex(sl => sl === s);
+                                  return (
+                                    <div key={i} className="flex items-center justify-between bg-muted/20 rounded px-2 py-1">
+                                      <span className="text-xs text-foreground">{s.start_time}–{s.end_time} · {s.room || "No location"}</span>
+                                      <button onClick={() => removeSlotFromList(globalIdx)} className="p-0.5 text-destructive hover:text-destructive/80"><X className="w-3 h-3" /></button>
+                                    </div>
+                                  );
+                                })}
+                                <div className="grid grid-cols-3 gap-2">
+                                  <div><label className={labelCls}>Start Time</label><input type="time" className={inputCls} value={input.start_time} onChange={e => updateDaySlotInput(day, "start_time", e.target.value)} /></div>
+                                  <div><label className={labelCls}>End Time</label><input type="time" className={inputCls} value={input.end_time} onChange={e => updateDaySlotInput(day, "end_time", e.target.value)} /></div>
+                                  <div><label className={labelCls}>Location</label><input className={inputCls} value={input.room} onChange={e => updateDaySlotInput(day, "room", e.target.value)} placeholder="Room 301" /></div>
+                                </div>
+                                <button onClick={() => addSlotForDay(day)} className="w-full px-3 py-1.5 rounded-lg bg-accent/20 text-accent-foreground text-xs font-display font-medium hover:bg-accent/30 transition-colors flex items-center justify-center gap-1">
+                                  <Plus className="w-3.5 h-3.5" /> Add Slot for {day}
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
@@ -375,11 +408,10 @@ const Admin = () => {
                                               <select className={inputCls} value={esDay} onChange={e => setEsDay(e.target.value)}>
                                                 {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
                                               </select>
-                                              <input className={inputCls} value={esSubject} onChange={e => setEsSubject(e.target.value)} placeholder="Subject" />
                                               <input type="time" className={inputCls} value={esStart} onChange={e => setEsStart(e.target.value)} />
                                               <input type="time" className={inputCls} value={esEnd} onChange={e => setEsEnd(e.target.value)} />
-                                              <input className={inputCls} value={esRoom} onChange={e => setEsRoom(e.target.value)} placeholder="Room" />
-                                              <div className="flex gap-1">
+                                              <input className={inputCls} value={esRoom} onChange={e => setEsRoom(e.target.value)} placeholder="Location" />
+                                              <div className="flex gap-1 col-span-2">
                                                 <button onClick={() => setEditingSlotId(null)} className="flex-1 px-2 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-display">Cancel</button>
                                                 <button onClick={saveEditSlot} className="flex-1 px-2 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-display font-semibold flex items-center justify-center gap-1"><Save className="w-3 h-3" />Save</button>
                                               </div>
@@ -388,7 +420,7 @@ const Admin = () => {
                                         ) : (
                                           <div className="flex items-center justify-between bg-muted/20 rounded-lg px-3 py-2">
                                             <span className="text-xs text-foreground font-body">
-                                              {slot.start_time?.slice(0,5)}–{slot.end_time?.slice(0,5)} · {slot.subject} · {slot.room}
+                                              {slot.start_time?.slice(0,5)}–{slot.end_time?.slice(0,5)} · {slot.room || "No location"}
                                               {slot.is_cancelled && <span className="text-destructive ml-1">(Cancelled)</span>}
                                             </span>
                                             <div className="flex gap-1">
@@ -412,18 +444,17 @@ const Admin = () => {
                                   <select className={inputCls} value={nsDay} onChange={e => setNsDay(e.target.value)}>
                                     {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
                                   </select>
-                                  <input className={inputCls} value={nsSubject} onChange={e => setNsSubject(e.target.value)} placeholder="Subject *" />
                                   <input type="time" className={inputCls} value={nsStart} onChange={e => setNsStart(e.target.value)} />
                                   <input type="time" className={inputCls} value={nsEnd} onChange={e => setNsEnd(e.target.value)} />
-                                  <input className={inputCls} value={nsRoom} onChange={e => setNsRoom(e.target.value)} placeholder="Room" />
-                                  <div className="flex gap-1">
+                                  <input className={inputCls} value={nsRoom} onChange={e => setNsRoom(e.target.value)} placeholder="Location" />
+                                  <div className="flex gap-1 col-span-2">
                                     <button onClick={() => setAddingSlotFor(null)} className="flex-1 px-2 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-display">Cancel</button>
                                     <button onClick={() => addNewSlotToFaculty(f.id)} className="flex-1 px-2 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-display font-semibold">Add</button>
                                   </div>
                                 </div>
                               </div>
                             ) : (
-                              <button onClick={() => { setAddingSlotFor(f.id); setNsSubject(""); setNsRoom(""); }}
+                              <button onClick={() => { setAddingSlotFor(f.id); setNsRoom(""); }}
                                 className="w-full py-2 rounded-lg border border-dashed border-border/50 text-xs text-muted-foreground hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center gap-1 font-display">
                                 <Plus className="w-3.5 h-3.5" /> Add Schedule Slot
                               </button>
