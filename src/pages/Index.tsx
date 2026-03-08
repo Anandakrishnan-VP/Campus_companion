@@ -189,6 +189,13 @@ const Index = () => {
         <div className="flex items-center gap-2">
           <NotificationPanel />
           <Link
+            to="/issues"
+            className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"
+            title="Student Voice"
+          >
+            <MessageSquareWarning className="w-5 h-5" />
+          </Link>
+          <Link
             to="/login"
             className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"
           >

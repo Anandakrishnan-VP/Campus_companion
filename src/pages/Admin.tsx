@@ -558,6 +558,11 @@ const Admin = () => {
           </Section>
         )}
 
+        {/* ===== ISSUES TAB ===== */}
+        {activeTab === "issues" && user && (
+          <IssuesManager userId={user.id} />
+        )}
+
         {/* ===== NOTIFICATIONS TAB ===== */}
         {activeTab === "notifications" && (
           <NotificationManager user={user} displayName="Admin" />
