@@ -422,7 +422,7 @@ function FemaleAvatar({ isSpeaking, isListening, isThinking }: { isSpeaking: boo
         {/* Upper arm */}
         <mesh position={[0.05, -0.14, 0]}>
           <capsuleGeometry args={[0.055, 0.22, 8, 16]} />
-          <meshStandardMaterial color={dressColor} roughness={0.4} />
+          <meshStandardMaterial color={blazerColor} roughness={0.5} />
         </mesh>
         {/* Forearm */}
         <group ref={leftForearmRef} position={[0.06, -0.3, 0]}>
