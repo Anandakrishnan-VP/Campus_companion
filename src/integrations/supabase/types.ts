@@ -14,16 +14,235 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      attendance: {
+        Row: {
+          created_at: string
+          date: string
+          faculty_id: string
+          id: string
+          note: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          faculty_id: string
+          id?: string
+          note?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          faculty_id?: string
+          id?: string
+          note?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attendance_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_time: string | null
+          event_date: string
+          id: string
+          location: string | null
+          start_time: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          event_date: string
+          id?: string
+          location?: string | null
+          start_time?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          event_date?: string
+          id?: string
+          location?: string | null
+          start_time?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      faculty: {
+        Row: {
+          aliases: string | null
+          created_at: string
+          department: string
+          email: string | null
+          id: string
+          is_present: boolean | null
+          name: string
+          office_location: string | null
+          phone: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          aliases?: string | null
+          created_at?: string
+          department?: string
+          email?: string | null
+          id?: string
+          is_present?: boolean | null
+          name: string
+          office_location?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          aliases?: string | null
+          created_at?: string
+          department?: string
+          email?: string | null
+          id?: string
+          is_present?: boolean | null
+          name?: string
+          office_location?: string | null
+          phone?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      locations: {
+        Row: {
+          block: string | null
+          created_at: string
+          description: string | null
+          floor: string | null
+          id: string
+          name: string
+          nearby_landmarks: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          block?: string | null
+          created_at?: string
+          description?: string | null
+          floor?: string | null
+          id?: string
+          name: string
+          nearby_landmarks?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          block?: string | null
+          created_at?: string
+          description?: string | null
+          floor?: string | null
+          id?: string
+          name?: string
+          nearby_landmarks?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      timetable: {
+        Row: {
+          created_at: string
+          day_of_week: string
+          end_time: string
+          faculty_id: string
+          id: string
+          is_cancelled: boolean | null
+          room: string
+          start_time: string
+          subject: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: string
+          end_time: string
+          faculty_id: string
+          id?: string
+          is_cancelled?: boolean | null
+          room?: string
+          start_time: string
+          subject?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: string
+          end_time?: string
+          faculty_id?: string
+          id?: string
+          is_cancelled?: boolean | null
+          room?: string
+          start_time?: string
+          subject?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timetable_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "faculty"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "professor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +369,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "professor"],
+    },
   },
 } as const
