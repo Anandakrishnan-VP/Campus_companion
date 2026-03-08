@@ -90,6 +90,9 @@ ${locationInfo || "No location data available yet."}
 LIVE EVENTS:
 ${eventInfo}
 
+DEPARTMENTS:
+${deptInfo}
+
 COLLEGE INFORMATION (from admin's Brain):
 ${kbInfo}
 
