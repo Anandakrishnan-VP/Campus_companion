@@ -104,7 +104,7 @@ function HumanAvatar({ isSpeaking, isListening, isThinking }: { isSpeaking: bool
 
       {/* Head */}
       <group ref={headRef} position={[0, 0.65, 0]}>
-        <mesh ref={headRef}>
+        <mesh>
           <sphereGeometry args={[0.3, 32, 32]} />
           <meshStandardMaterial color={skinColor} roughness={0.5} />
         </mesh>
