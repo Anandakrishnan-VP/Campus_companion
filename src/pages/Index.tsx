@@ -210,6 +210,7 @@ const Index = () => {
                 isListening={speech.isListening}
                 isThinking={isThinking}
                 status={getStatus()}
+                onTap={handleAvatarTap}
               />
             </Suspense>
             <motion.div
