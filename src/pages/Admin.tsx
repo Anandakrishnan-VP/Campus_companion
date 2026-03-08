@@ -320,7 +320,7 @@ const Admin = () => {
                 {faculty.filter((f: any) => !f.user_id).map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
               </select>
             </div>
-            <div><label className={labelCls}>Email *</label><input className={inputCls} value={profEmail} onChange={e => setProfEmail(e.target.value)} placeholder="professor@univ.edu" /></div>
+            <div><label className={labelCls}>Professor ID *</label><input className={inputCls} value={profId} onChange={e => setProfId(e.target.value)} placeholder="e.g. prof_john" /></div>
             <div><label className={labelCls}>Password *</label><input type="password" className={inputCls} value={profPassword} onChange={e => setProfPassword(e.target.value)} placeholder="min 6 characters" /></div>
             <button onClick={createProfessorAccount} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-display font-semibold text-sm">Create Account</button>
           </motion.div>
