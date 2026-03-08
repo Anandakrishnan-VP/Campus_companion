@@ -103,6 +103,7 @@ const Admin = () => {
     { key: "events", label: "Events", icon: Calendar },
     { key: "locations", label: "Locations", icon: MapPin },
     { key: "brain", label: "Brain", icon: Brain },
+    { key: "issues", label: "Issues", icon: MessageSquare },
     { key: "notifications", label: "Notifications", icon: Bell },
   ];
 
