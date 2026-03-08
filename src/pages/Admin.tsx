@@ -19,6 +19,12 @@ interface ScheduleSlot {
   room: string;
 }
 
+interface DaySlotInput {
+  start_time: string;
+  end_time: string;
+  room: string;
+}
+
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const Admin = () => {
