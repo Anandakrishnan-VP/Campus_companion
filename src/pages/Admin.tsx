@@ -237,6 +237,32 @@ const Admin = () => {
   };
   const deleteLocation = async (id: string) => { await supabase.from("locations").delete().eq("id", id); refetchLocations(); };
 
+  // --- Department helpers ---
+  const resetDeptForm = () => { setDeptName(""); setDeptHod(""); setDeptDesc(""); setEditingDeptId(null); setShowDeptForm(false); };
+
+  const saveDepartment = async () => {
+    if (!deptName.trim()) { toast({ title: "Department name required", variant: "destructive" }); return; }
+    const payload = { name: deptName.trim(), hod_name: deptHod.trim(), description: deptDesc.trim() };
+    if (editingDeptId) {
+      await (supabase.from("departments") as any).update(payload).eq("id", editingDeptId);
+      toast({ title: "Department updated" });
+    } else {
+      await (supabase.from("departments") as any).insert(payload);
+      toast({ title: "Department added" });
+    }
+    resetDeptForm(); refetchDepts();
+  };
+
+  const editDepartment = (d: any) => {
+    setDeptName(d.name); setDeptHod(d.hod_name || ""); setDeptDesc(d.description || "");
+    setEditingDeptId(d.id); setShowDeptForm(true);
+  };
+
+  const deleteDepartment = async (id: string) => {
+    await (supabase.from("departments") as any).delete().eq("id", id);
+    refetchDepts();
+  };
+
   const copyCredentials = () => {
     if (!profCredentials) return;
     navigator.clipboard.writeText(`ID: ${profCredentials.id}\nPassword: ${profCredentials.password}`);
