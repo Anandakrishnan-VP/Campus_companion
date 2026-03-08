@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import IssuesManager from "@/components/admin/IssuesManager";
 
 type Tab = "faculty" | "events" | "locations" | "brain" | "notifications";
 
