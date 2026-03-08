@@ -78,10 +78,30 @@ const Admin = () => {
 
   if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground font-display">Loading...</p></div>;
 
+  // Brain (knowledge base) form
+  const [kbCategory, setKbCategory] = useState("General");
+  const [kbTitle, setKbTitle] = useState("");
+  const [kbContent, setKbContent] = useState("");
+
+  const BRAIN_CATEGORIES = ["General", "Admissions", "Courses", "Facilities", "History", "Placements", "Hostel", "Transport", "Fees", "Clubs & Activities", "Rules & Policies", "Other"];
+
+  const saveKBEntry = async () => {
+    if (!kbTitle.trim() || !kbContent.trim()) { toast({ title: "Title and content required", variant: "destructive" }); return; }
+    await (supabase.from("knowledge_base") as any).insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim() });
+    setShowBrainForm(false); setKbTitle(""); setKbContent(""); setKbCategory("General"); refetchKB();
+    toast({ title: "Knowledge added to Brain" });
+  };
+
+  const deleteKBEntry = async (id: string) => {
+    await (supabase.from("knowledge_base") as any).delete().eq("id", id);
+    refetchKB();
+  };
+
   const tabs: { key: Tab; label: string; icon: typeof Users }[] = [
     { key: "faculty", label: "Faculty & Schedule", icon: Users },
     { key: "events", label: "Events", icon: Calendar },
     { key: "locations", label: "Locations", icon: MapPin },
+    { key: "brain", label: "Brain", icon: Brain },
     { key: "notifications", label: "Notifications", icon: Bell },
   ];
 
