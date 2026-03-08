@@ -103,18 +103,17 @@ const Admin = () => {
   const deleteLocation = async (id: string) => { await supabase.from("locations").delete().eq("id", id); refetchLocations(); };
 
   const createProfessorAccount = async () => {
-    if (!profEmail.trim() || !profPassword || !profFacultyId) {
+    if (!profId.trim() || !profPassword || !profFacultyId) {
       toast({ title: "Fill all fields", variant: "destructive" }); return;
     }
     try {
-      // Create user via edge function
       const { data, error } = await supabase.functions.invoke("create-professor", {
-        body: { email: profEmail.trim(), password: profPassword, faculty_id: profFacultyId },
+        body: { professor_id: profId.trim(), password: profPassword, faculty_id: profFacultyId },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast({ title: "Professor account created!" });
-      setShowCreateProfessor(false); setProfEmail(""); setProfPassword(""); setProfFacultyId("");
+      setShowCreateProfessor(false); setProfId(""); setProfPassword(""); setProfFacultyId("");
       refetchFaculty();
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });
