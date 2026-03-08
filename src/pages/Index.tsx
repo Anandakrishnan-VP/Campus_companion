@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -13,11 +13,11 @@ const getMockResponse = (query: string): string => {
   if (q.includes("faculty") || q.includes("professor") || q.includes("swathy"))
     return "Professor Swathy is currently in Room 204, Block A. She has a class from 10:00 AM to 11:00 AM. Her next free slot is at 11:15 AM. Would you like me to show directions to her office?";
   if (q.includes("event") || q.includes("seminar"))
-    return "Today's Events:\n\n• AI Workshop — Seminar Hall, 2:00 PM - 4:00 PM\n• Coding Contest — CS Lab 1, 10:00 AM - 1:00 PM\n• Guest Lecture on Cybersecurity — Auditorium, 3:30 PM";
+    return "Today's Events: AI Workshop at Seminar Hall, 2 to 4 PM. Coding Contest at CS Lab 1, 10 AM to 1 PM. Guest Lecture on Cybersecurity at the Auditorium, 3:30 PM.";
   if (q.includes("navigate") || q.includes("location") || q.includes("lab") || q.includes("room"))
     return "The AI Lab is located on the Second Floor in Block B, near the east staircase. Turn right from the elevator and it's the third door on your left.";
   if (q.includes("department"))
-    return "This building houses the following departments:\n\n• Computer Science & Engineering\n• Artificial Intelligence & Data Science\n• Information Technology\n• Electronics & Communication";
+    return "This building houses the following departments: Computer Science and Engineering, Artificial Intelligence and Data Science, Information Technology, and Electronics and Communication.";
   if (q.includes("college") || q.includes("about"))
     return "Welcome to our University! We are a leading institution of higher education with state-of-the-art facilities, dedicated faculty, and a vibrant campus life. The campus spans 50 acres with 8 academic blocks.";
   return "I can help you with finding faculty, navigating the building, checking events, or answering general campus questions. What would you like to know?";
@@ -36,16 +36,11 @@ const Index = () => {
 
   const speech = useSpeech();
 
-  // When voice recognition captures a transcript, send it as a message
-  useEffect(() => {
-    if (speech.transcript && !speech.isListening) {
-      handleSendMessage(speech.transcript);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [speech.transcript, speech.isListening]);
-
   const handleSendMessage = useCallback(
     async (text: string) => {
+      // Stop any ongoing speech first
+      speech.stopSpeaking();
+
       const userMsg: ChatMessage = { id: Date.now().toString(), role: "user", content: text };
       setMessages((prev) => [...prev, userMsg]);
       setIsLoading(true);
@@ -70,11 +65,22 @@ const Index = () => {
     [speech]
   );
 
+  const handleStartListening = useCallback(() => {
+    speech.stopSpeaking();
+    speech.startListening((text) => {
+      handleSendMessage(text);
+    });
+  }, [speech, handleSendMessage]);
+
+  const handleStopListening = useCallback(() => {
+    speech.stopListening();
+  }, [speech]);
+
   const getStatus = () => {
     if (speech.isSpeaking) return "Speaking...";
-    if (speech.isListening) return "Listening...";
+    if (speech.isListening) return "Listening... Tap stop when done";
     if (isThinking) return "Processing...";
-    return "Ready to help";
+    return "Tap mic or type to ask";
   };
 
   return (
@@ -137,8 +143,8 @@ const Index = () => {
               isLoading={isLoading}
               onSendMessage={handleSendMessage}
               isListening={speech.isListening}
-              onStartListening={speech.startListening}
-              onStopListening={speech.stopListening}
+              onStartListening={handleStartListening}
+              onStopListening={handleStopListening}
               isSpeaking={speech.isSpeaking}
               onStopSpeaking={speech.stopSpeaking}
               voiceSupported={speech.supported}
