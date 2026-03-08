@@ -28,6 +28,7 @@ const Admin = () => {
   const { data: timetable, refetch: refetchTimetable } = useRealtimeTable("timetable");
   const { data: events, refetch: refetchEvents } = useRealtimeTable("events");
   const { data: locations, refetch: refetchLocations } = useRealtimeTable("locations");
+  const { data: knowledgeBase, refetch: refetchKB } = useRealtimeTable("knowledge_base" as any);
 
   const [showFacultyForm, setShowFacultyForm] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
