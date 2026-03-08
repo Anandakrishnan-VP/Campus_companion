@@ -74,7 +74,7 @@ const Index = () => {
     {
       id: "welcome",
       role: "assistant",
-      content: "Hello! I'm your NCERC AI Assistant. I can help you find faculty, navigate the campus, check events, and more. How can I help you today?",
+      content: "Hello! I'm Zoya, your NCERC AI Assistant. I can help you find faculty, navigate the campus, check events, and more. How can I help you today?",
     },
   ]);
   const [isLoading, setIsLoading] = useState(false);
