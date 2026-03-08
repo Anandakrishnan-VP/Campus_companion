@@ -12,6 +12,7 @@ interface ChatInterfaceProps {
   messages: ChatMessage[];
   isLoading: boolean;
   onSendMessage: (message: string) => void;
+  onClearChat?: () => void;
   isListening: boolean;
   onStartListening: () => void;
   onStopListening: () => void;
