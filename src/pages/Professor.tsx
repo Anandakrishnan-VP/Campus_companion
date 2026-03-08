@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, LogOut, Calendar, Clock, Check, X, Edit2, Bell } from "lucide-react";
+import { ArrowLeft, LogOut, Calendar, Clock, Check, X, Edit2, Bell, User, Save } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationManager from "@/components/NotificationManager";
 import { useAuth } from "@/hooks/use-auth";
@@ -10,12 +10,12 @@ import { toast } from "@/hooks/use-toast";
 
 const Professor = () => {
   const { user, loading: authLoading, signOut, facultyId } = useAuth("professor");
-  const [activeTab, setActiveTab] = useState<"attendance" | "timetable" | "notifications">("attendance");
+  const [activeTab, setActiveTab] = useState<"attendance" | "timetable" | "profile" | "notifications">("attendance");
   const [todayStatus, setTodayStatus] = useState<string | null>(null);
 
   const { data: myTimetable, refetch: refetchTimetable } = useRealtimeTable("timetable", facultyId ? { column: "faculty_id", value: facultyId } : undefined);
   const { data: myAttendance } = useRealtimeTable("attendance", facultyId ? { column: "faculty_id", value: facultyId } : undefined);
-  const { data: facultyData } = useRealtimeTable("faculty");
+  const { data: facultyData, refetch: refetchFaculty } = useRealtimeTable("faculty");
 
   const myFaculty = facultyData.find((f: any) => f.id === facultyId);
   const today = new Date().toISOString().split("T")[0];
@@ -29,6 +29,12 @@ const Professor = () => {
   const [editingSlot, setEditingSlot] = useState<string | null>(null);
   const [editSubject, setEditSubject] = useState(""); const [editRoom, setEditRoom] = useState("");
   const [editStart, setEditStart] = useState(""); const [editEnd, setEditEnd] = useState("");
+
+  // Edit profile
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [pName, setPName] = useState(""); const [pAliases, setPAliases] = useState("");
+  const [pDept, setPDept] = useState(""); const [pOffice, setPOffice] = useState("");
+  const [pPhone, setPPhone] = useState("");
 
   if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground font-display">Loading...</p></div>;
 
@@ -49,7 +55,6 @@ const Professor = () => {
     } else {
       await supabase.from("attendance").insert({ faculty_id: facultyId, date: today, status });
     }
-    // Also update is_present on faculty
     await supabase.from("faculty").update({ is_present: status === "present" }).eq("id", facultyId);
     setTodayStatus(status);
     toast({ title: `Marked as ${status}` });
@@ -72,7 +77,25 @@ const Professor = () => {
     toast({ title: "Schedule updated" });
   };
 
+  const startProfileEdit = () => {
+    if (!myFaculty) return;
+    setPName(myFaculty.name || ""); setPAliases(myFaculty.aliases || "");
+    setPDept(myFaculty.department || ""); setPOffice(myFaculty.office_location || "");
+    setPPhone(myFaculty.phone || "");
+    setEditingProfile(true);
+  };
+
+  const saveProfile = async () => {
+    await supabase.from("faculty").update({
+      name: pName, aliases: pAliases, department: pDept, office_location: pOffice, phone: pPhone,
+    }).eq("id", facultyId);
+    setEditingProfile(false);
+    refetchFaculty();
+    toast({ title: "Profile updated" });
+  };
+
   const inputCls = "w-full bg-muted/50 border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground font-body focus:outline-none focus:border-primary/50";
+  const labelCls = "text-xs font-display text-muted-foreground mb-1 block";
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   return (
@@ -86,19 +109,18 @@ const Professor = () => {
         <button onClick={signOut} className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground"><LogOut className="w-5 h-5" /></button>
       </header>
 
-      <div className="flex gap-1 px-6 py-3 border-b border-border/30">
-        <button onClick={() => setActiveTab("attendance")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-display font-medium transition-all ${activeTab === "attendance" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/50"}`}>
-          <Calendar className="w-4 h-4" />Attendance
-        </button>
-        <button onClick={() => setActiveTab("timetable")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-display font-medium transition-all ${activeTab === "timetable" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/50"}`}>
-          <Clock className="w-4 h-4" />My Timetable
-        </button>
-        <button onClick={() => setActiveTab("notifications")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-display font-medium transition-all ${activeTab === "notifications" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/50"}`}>
-          <Bell className="w-4 h-4" />Notifications
-        </button>
+      <div className="flex gap-1 px-6 py-3 border-b border-border/30 overflow-x-auto">
+        {([
+          { key: "attendance" as const, label: "Attendance", icon: Calendar },
+          { key: "timetable" as const, label: "My Timetable", icon: Clock },
+          { key: "profile" as const, label: "My Profile", icon: User },
+          { key: "notifications" as const, label: "Notifications", icon: Bell },
+        ]).map((tab) => (
+          <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-display font-medium transition-all whitespace-nowrap ${activeTab === tab.key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-secondary/50"}`}>
+            <tab.icon className="w-4 h-4" />{tab.label}
+          </button>
+        ))}
       </div>
 
       <div className="max-w-3xl mx-auto px-6 py-6">
@@ -107,11 +129,14 @@ const Professor = () => {
             <div className="glass-card p-6 text-center">
               <h2 className="text-lg font-display font-bold text-foreground mb-2">Today's Attendance</h2>
               <p className="text-sm text-muted-foreground mb-4">{new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
-              {todayStatus && (
-                <div className={`inline-block px-4 py-2 rounded-full text-sm font-display font-semibold mb-4 ${todayStatus === "present" ? "bg-green-500/20 text-green-400" : todayStatus === "absent" ? "bg-destructive/20 text-destructive" : "bg-yellow-500/20 text-yellow-400"}`}>
-                  Currently: {todayStatus.charAt(0).toUpperCase() + todayStatus.slice(1)}
-                </div>
-              )}
+              <div className={`inline-block px-4 py-2 rounded-full text-sm font-display font-semibold mb-4 ${
+                todayStatus === "present" ? "bg-green-500/20 text-green-400" :
+                todayStatus === "absent" ? "bg-destructive/20 text-destructive" :
+                todayStatus === "leave" ? "bg-yellow-500/20 text-yellow-400" :
+                "bg-muted/50 text-muted-foreground"
+              }`}>
+                Currently: {todayStatus ? todayStatus.charAt(0).toUpperCase() + todayStatus.slice(1) : "Unmarked"}
+              </div>
               <div className="flex gap-3 justify-center">
                 <button onClick={() => markAttendance("present")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "present" ? "bg-green-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-green-500/20"}`}>
                   <Check className="w-4 h-4 inline mr-1" />Present
@@ -189,6 +214,47 @@ const Professor = () => {
             {myTimetable.length === 0 && (
               <div className="glass-card p-6 text-center">
                 <p className="text-muted-foreground text-sm">No timetable slots assigned yet. Contact admin to set up your schedule.</p>
+              </div>
+            )}
+          </motion.div>
+        )}
+
+        {activeTab === "profile" && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-display font-bold text-foreground">My Profile</h2>
+              {!editingProfile && (
+                <button onClick={startProfileEdit} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">
+                  <Edit2 className="w-4 h-4" />Edit
+                </button>
+              )}
+            </div>
+            {editingProfile ? (
+              <div className="glass-card p-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className={labelCls}>Name</label><input className={inputCls} value={pName} onChange={e => setPName(e.target.value)} /></div>
+                  <div><label className={labelCls}>Aliases</label><input className={inputCls} value={pAliases} onChange={e => setPAliases(e.target.value)} /></div>
+                  <div><label className={labelCls}>Department</label><input className={inputCls} value={pDept} onChange={e => setPDept(e.target.value)} /></div>
+                  <div><label className={labelCls}>Office Location</label><input className={inputCls} value={pOffice} onChange={e => setPOffice(e.target.value)} /></div>
+                  <div><label className={labelCls}>Phone</label><input className={inputCls} value={pPhone} onChange={e => setPPhone(e.target.value)} /></div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button onClick={() => setEditingProfile(false)} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
+                  <button onClick={saveProfile} className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">
+                    <Save className="w-4 h-4" />Save
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="glass-card p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div><p className="text-xs text-muted-foreground font-display">Name</p><p className="text-sm text-foreground font-body font-medium">{myFaculty?.name || "—"}</p></div>
+                  <div><p className="text-xs text-muted-foreground font-display">Aliases</p><p className="text-sm text-foreground font-body">{myFaculty?.aliases || "—"}</p></div>
+                  <div><p className="text-xs text-muted-foreground font-display">Department</p><p className="text-sm text-foreground font-body">{myFaculty?.department || "—"}</p></div>
+                  <div><p className="text-xs text-muted-foreground font-display">Office</p><p className="text-sm text-foreground font-body">{myFaculty?.office_location || "—"}</p></div>
+                  <div><p className="text-xs text-muted-foreground font-display">Phone</p><p className="text-sm text-foreground font-body">{myFaculty?.phone || "—"}</p></div>
+                  <div><p className="text-xs text-muted-foreground font-display">Login ID</p><p className="text-sm text-foreground font-body">{user?.email?.replace("@campus.local", "")}</p></div>
+                </div>
               </div>
             )}
           </motion.div>

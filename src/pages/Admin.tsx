@@ -27,7 +27,7 @@ const Admin = () => {
   // Faculty form
   const [fName, setFName] = useState(""); const [fAliases, setFAliases] = useState("");
   const [fDept, setFDept] = useState(""); const [fOffice, setFOffice] = useState("");
-  const [fEmail, setFEmail] = useState(""); const [fPhone, setFPhone] = useState("");
+  const [fPhone, setFPhone] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Timetable form
@@ -37,13 +37,14 @@ const Admin = () => {
 
   // Event form
   const [eName, setEName] = useState(""); const [eDesc, setEDesc] = useState("");
-  const [eLoc, setELoc] = useState(""); const [eDate, setEDate] = useState("");
+  const [eVenue, setEVenue] = useState(""); const [eDate, setEDate] = useState("");
   const [eStart, setEStart] = useState(""); const [eEnd, setEEnd] = useState("");
 
   // Location form
   const [lName, setLName] = useState(""); const [lType, setLType] = useState("Room");
   const [lFloor, setLFloor] = useState(""); const [lBlock, setLBlock] = useState("");
   const [lDesc, setLDesc] = useState(""); const [lLandmarks, setLLandmarks] = useState("");
+  const [lDirections, setLDirections] = useState("");
 
   // Professor credentials modal
   const [creatingProf, setCreatingProf] = useState(false);
@@ -60,17 +61,16 @@ const Admin = () => {
     { key: "notifications", label: "Notifications", icon: Bell },
   ];
 
-  const resetFacultyForm = () => { setFName(""); setFAliases(""); setFDept(""); setFOffice(""); setFEmail(""); setFPhone(""); setEditingId(null); setShowFacultyForm(false); };
+  const resetFacultyForm = () => { setFName(""); setFAliases(""); setFDept(""); setFOffice(""); setFPhone(""); setEditingId(null); setShowFacultyForm(false); };
 
   const saveFaculty = async () => {
     if (!fName.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
-    const payload = { name: fName.trim(), aliases: fAliases, department: fDept, office_location: fOffice, email: fEmail, phone: fPhone };
+    const payload = { name: fName.trim(), aliases: fAliases, department: fDept, office_location: fOffice, phone: fPhone };
     if (editingId) {
       await supabase.from("faculty").update(payload).eq("id", editingId);
       resetFacultyForm();
       refetchFaculty();
     } else {
-      // Insert faculty first
       const { data: newFac, error } = await supabase.from("faculty").insert(payload).select("id").single();
       if (error || !newFac) {
         toast({ title: "Error adding faculty", variant: "destructive" });
@@ -78,7 +78,6 @@ const Admin = () => {
       }
       resetFacultyForm();
       refetchFaculty();
-      // Auto-create professor account
       setCreatingProf(true);
       try {
         const { data, error: fnErr } = await supabase.functions.invoke("create-professor", {
@@ -96,7 +95,7 @@ const Admin = () => {
   };
 
   const editFaculty = (f: any) => {
-    setFName(f.name); setFAliases(f.aliases || ""); setFDept(f.department); setFOffice(f.office_location || ""); setFEmail(f.email || ""); setFPhone(f.phone || ""); setEditingId(f.id); setShowFacultyForm(true);
+    setFName(f.name); setFAliases(f.aliases || ""); setFDept(f.department); setFOffice(f.office_location || ""); setFPhone(f.phone || ""); setEditingId(f.id); setShowFacultyForm(true);
   };
 
   const deleteFaculty = async (id: string) => { await supabase.from("faculty").delete().eq("id", id); refetchFaculty(); };
@@ -111,16 +110,16 @@ const Admin = () => {
 
   const saveEvent = async () => {
     if (!eName.trim() || !eDate) { toast({ title: "Title and date required", variant: "destructive" }); return; }
-    await supabase.from("events").insert({ title: eName, description: eDesc, location: eLoc, event_date: eDate, start_time: eStart || null, end_time: eEnd || null });
-    setShowEventForm(false); setEName(""); setEDesc(""); setELoc(""); setEDate(""); setEStart(""); setEEnd(""); refetchEvents();
+    await supabase.from("events").insert({ title: eName, description: eDesc, location: eVenue, event_date: eDate, start_time: eStart || null, end_time: eEnd || null });
+    setShowEventForm(false); setEName(""); setEDesc(""); setEVenue(""); setEDate(""); setEStart(""); setEEnd(""); refetchEvents();
   };
 
   const deleteEvent = async (id: string) => { await supabase.from("events").delete().eq("id", id); refetchEvents(); };
 
   const saveLocation = async () => {
     if (!lName.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
-    await supabase.from("locations").insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks });
-    setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); refetchLocations();
+    await (supabase.from("locations") as any).insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections });
+    setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); setLDirections(""); refetchLocations();
   };
 
   const deleteLocation = async (id: string) => { await supabase.from("locations").delete().eq("id", id); refetchLocations(); };
@@ -163,11 +162,10 @@ const Admin = () => {
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className={labelCls}>Name *</label><input className={inputCls} value={fName} onChange={e => setFName(e.target.value)} placeholder="Dr. Name" /></div>
-                  <div><label className={labelCls}>Aliases</label><input className={inputCls} value={fAliases} onChange={e => setFAliases(e.target.value)} placeholder="Prof Name, Name Sir" /></div>
-                  <div><label className={labelCls}>Department</label><input className={inputCls} value={fDept} onChange={e => setFDept(e.target.value)} placeholder="CS" /></div>
-                  <div><label className={labelCls}>Office</label><input className={inputCls} value={fOffice} onChange={e => setFOffice(e.target.value)} placeholder="Room 204, Block A" /></div>
-                  <div><label className={labelCls}>Email</label><input className={inputCls} value={fEmail} onChange={e => setFEmail(e.target.value)} placeholder="email@univ.edu" /></div>
-                  <div><label className={labelCls}>Phone</label><input className={inputCls} value={fPhone} onChange={e => setFPhone(e.target.value)} /></div>
+                  <div><label className={labelCls}>Aliases (nicknames)</label><input className={inputCls} value={fAliases} onChange={e => setFAliases(e.target.value)} placeholder="Prof Name, Name Sir" /></div>
+                  <div><label className={labelCls}>Department *</label><input className={inputCls} value={fDept} onChange={e => setFDept(e.target.value)} placeholder="Computer Science" /></div>
+                  <div><label className={labelCls}>Office Location *</label><input className={inputCls} value={fOffice} onChange={e => setFOffice(e.target.value)} placeholder="Room 204, Block A" /></div>
+                  <div><label className={labelCls}>Phone Number *</label><input className={inputCls} value={fPhone} onChange={e => setFPhone(e.target.value)} placeholder="+91-XXXXX-XXXXX" /></div>
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button onClick={resetFacultyForm} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
@@ -180,8 +178,8 @@ const Admin = () => {
                 <div key={f.id} className="glass-card p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <p className="font-display font-semibold text-foreground">{f.name}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Aliases: {f.aliases || "—"} · Dept: {f.department || "—"}</p>
-                    <p className="text-xs text-muted-foreground">Office: {f.office_location || "—"} · {f.user_id ? `✅ Login ID: ${f.email?.replace("@campus.local", "")}` : "❌ No login"}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Dept: {f.department || "—"} · Office: {f.office_location || "—"}</p>
+                    <p className="text-xs text-muted-foreground">Phone: {f.phone || "—"} · {f.user_id ? `✅ Login ID: ${f.email?.replace("@campus.local", "") || "linked"}` : "❌ No login"}</p>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => editFaculty(f)} className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground"><Edit2 className="w-4 h-4" /></button>
@@ -211,10 +209,10 @@ const Admin = () => {
                       {["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
                   </div>
-                  <div><label className={labelCls}>Start Time</label><input type="time" className={inputCls} value={tStart} onChange={e => setTStart(e.target.value)} /></div>
-                  <div><label className={labelCls}>End Time</label><input type="time" className={inputCls} value={tEnd} onChange={e => setTEnd(e.target.value)} /></div>
+                  <div><label className={labelCls}>Start Time *</label><input type="time" className={inputCls} value={tStart} onChange={e => setTStart(e.target.value)} /></div>
+                  <div><label className={labelCls}>End Time *</label><input type="time" className={inputCls} value={tEnd} onChange={e => setTEnd(e.target.value)} /></div>
                   <div><label className={labelCls}>Subject *</label><input className={inputCls} value={tSubject} onChange={e => setTSubject(e.target.value)} placeholder="Data Structures" /></div>
-                  <div><label className={labelCls}>Room</label><input className={inputCls} value={tRoom} onChange={e => setTRoom(e.target.value)} placeholder="Room 301" /></div>
+                  <div><label className={labelCls}>Room *</label><input className={inputCls} value={tRoom} onChange={e => setTRoom(e.target.value)} placeholder="Room 301" /></div>
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button onClick={() => setShowTimetableForm(false)} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
@@ -246,11 +244,11 @@ const Admin = () => {
             {showEventForm && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className={labelCls}>Title *</label><input className={inputCls} value={eName} onChange={e => setEName(e.target.value)} /></div>
-                  <div><label className={labelCls}>Location</label><input className={inputCls} value={eLoc} onChange={e => setELoc(e.target.value)} /></div>
+                  <div><label className={labelCls}>Event Title *</label><input className={inputCls} value={eName} onChange={e => setEName(e.target.value)} placeholder="Tech Fest 2026" /></div>
+                  <div><label className={labelCls}>Venue *</label><input className={inputCls} value={eVenue} onChange={e => setEVenue(e.target.value)} placeholder="Main Auditorium" /></div>
                   <div><label className={labelCls}>Date *</label><input type="date" className={inputCls} value={eDate} onChange={e => setEDate(e.target.value)} /></div>
-                  <div><label className={labelCls}>Description</label><input className={inputCls} value={eDesc} onChange={e => setEDesc(e.target.value)} /></div>
-                  <div><label className={labelCls}>Start Time</label><input type="time" className={inputCls} value={eStart} onChange={e => setEStart(e.target.value)} /></div>
+                  <div><label className={labelCls}>Description</label><input className={inputCls} value={eDesc} onChange={e => setEDesc(e.target.value)} placeholder="Annual tech festival" /></div>
+                  <div><label className={labelCls}>Start Time *</label><input type="time" className={inputCls} value={eStart} onChange={e => setEStart(e.target.value)} /></div>
                   <div><label className={labelCls}>End Time</label><input type="time" className={inputCls} value={eEnd} onChange={e => setEEnd(e.target.value)} /></div>
                 </div>
                 <div className="flex gap-2 justify-end">
@@ -264,7 +262,7 @@ const Admin = () => {
                 <div key={e.id} className="glass-card p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <p className="font-display font-semibold text-foreground">{e.title}</p>
-                    <p className="text-xs text-muted-foreground mt-1">📍 {e.location || "—"} · 📅 {e.event_date} · 🕐 {e.start_time?.slice(0,5) || "—"}–{e.end_time?.slice(0,5) || "—"}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Venue: {e.location || "—"} · Date: {e.event_date} · Time: {e.start_time?.slice(0,5) || "—"}–{e.end_time?.slice(0,5) || "—"}</p>
                     {e.description && <p className="text-xs text-muted-foreground">{e.description}</p>}
                   </div>
                   <button onClick={() => deleteEvent(e.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
@@ -277,20 +275,21 @@ const Admin = () => {
 
         {/* LOCATIONS TAB */}
         {activeTab === "locations" && (
-          <Section title="Locations">
+          <Section title="Locations & Navigation">
             {showLocationForm && (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <div><label className={labelCls}>Name *</label><input className={inputCls} value={lName} onChange={e => setLName(e.target.value)} placeholder="AI Lab" /></div>
+                  <div><label className={labelCls}>Place Name *</label><input className={inputCls} value={lName} onChange={e => setLName(e.target.value)} placeholder="AI Lab" /></div>
                   <div><label className={labelCls}>Type</label>
                     <select className={inputCls} value={lType} onChange={e => setLType(e.target.value)}>
-                      {["Room","Lab","Hall","Office","Other"].map(t => <option key={t} value={t}>{t}</option>)}
+                      {["Room","Lab","Hall","Office","Library","Cafeteria","Washroom","Parking","Other"].map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </div>
                   <div><label className={labelCls}>Floor</label><input className={inputCls} value={lFloor} onChange={e => setLFloor(e.target.value)} placeholder="2nd Floor" /></div>
                   <div><label className={labelCls}>Block</label><input className={inputCls} value={lBlock} onChange={e => setLBlock(e.target.value)} placeholder="Block B" /></div>
-                  <div><label className={labelCls}>Description</label><input className={inputCls} value={lDesc} onChange={e => setLDesc(e.target.value)} placeholder="Near east staircase" /></div>
-                  <div><label className={labelCls}>Nearby Landmarks</label><input className={inputCls} value={lLandmarks} onChange={e => setLLandmarks(e.target.value)} /></div>
+                  <div className="col-span-2"><label className={labelCls}>How to Reach (Directions) *</label><input className={inputCls} value={lDirections} onChange={e => setLDirections(e.target.value)} placeholder="Enter main gate, turn left, take stairs to 2nd floor, 3rd room on right" /></div>
+                  <div><label className={labelCls}>Description</label><input className={inputCls} value={lDesc} onChange={e => setLDesc(e.target.value)} placeholder="Computer lab with 60 seats" /></div>
+                  <div><label className={labelCls}>Nearby Landmarks</label><input className={inputCls} value={lLandmarks} onChange={e => setLLandmarks(e.target.value)} placeholder="Next to library, opposite canteen" /></div>
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button onClick={() => setShowLocationForm(false)} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
@@ -304,6 +303,7 @@ const Admin = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-display font-semibold text-foreground">{l.name}</p>
                     <p className="text-xs text-muted-foreground mt-1">{l.type} · {l.floor || "—"} · {l.block || "—"}</p>
+                    {(l as any).directions && <p className="text-xs text-primary/80 mt-1">📍 How to reach: {(l as any).directions}</p>}
                     {l.description && <p className="text-xs text-muted-foreground">{l.description}</p>}
                   </div>
                   <button onClick={() => deleteLocation(l.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
