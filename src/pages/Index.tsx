@@ -1,10 +1,10 @@
-import { useState, useCallback, useRef, Suspense } from "react";
+import { useState, useCallback, useRef, Suspense, lazy } from "react";
 import ncercLogo from "@/assets/ncerc-logo.jpg";
 import { motion } from "framer-motion";
 import { Settings, MessageSquareWarning } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationPanel from "@/components/kiosk/NotificationPanel";
-import Avatar3D from "@/components/kiosk/Avatar3D";
+const Avatar3D = lazy(() => import("@/components/kiosk/Avatar3D"));
 import ChatInterface, { type ChatMessage } from "@/components/kiosk/ChatInterface";
 import QuickActions from "@/components/kiosk/QuickActions";
 import EmergencyButton from "@/components/kiosk/EmergencyButton";

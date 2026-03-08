@@ -1,6 +1,6 @@
 import { useRef, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { Float, Environment, Text } from "@react-three/drei";
+import { Float } from "@react-three/drei";
 import * as THREE from "three";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -241,17 +241,7 @@ function FemaleAvatar({ isSpeaking, isListening, isThinking }: { isSpeaking: boo
         <boxGeometry args={[0.105, 0.035, 0.003]} />
         <meshStandardMaterial color="#a07830" metalness={0.7} roughness={0.2} />
       </mesh>
-      {/* YUKTI text */}
-      <Text
-        position={[-0.12, -0.05, 0.29]}
-        fontSize={0.018}
-        color="#1a2744"
-        anchorX="center"
-        anchorY="middle"
-        fontWeight={700}
-      >
-        YUKTI
-      </Text>
+      {/* YUKTI nameplate text removed for performance */}
 
       {/* ─── Neck ─── */}
       <mesh position={[0, 0.35, 0]}>
@@ -518,6 +508,7 @@ const Avatar3D = ({ isSpeaking = false, isListening = false, isThinking = false,
           camera={{ position: [0, 0.2, 2.6], fov: 40 }}
           style={{ borderRadius: "50%", background: "transparent" }}
           gl={{ alpha: true, antialias: true }}
+          dpr={[1, 1.5]}
         >
           <ambientLight intensity={0.55} />
           <directionalLight position={[2, 3, 2]} intensity={1.3} color="#ffffff" />
@@ -531,7 +522,7 @@ const Avatar3D = ({ isSpeaking = false, isListening = false, isThinking = false,
 
           <GlowRing color={isSpeaking ? "#00d4ff" : isListening ? "#a855f7" : "#00d4ff"} speed={2} />
 
-          <Environment preset="city" />
+          <hemisphereLight args={["#b1e1ff", "#b97a20", 0.4]} />
         </Canvas>
 
         {/* Tap hint overlay */}
