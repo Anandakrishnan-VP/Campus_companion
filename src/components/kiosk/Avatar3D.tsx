@@ -522,7 +522,7 @@ const Avatar3D = ({ isSpeaking = false, isListening = false, isThinking = false,
 
           <GlowRing color={isSpeaking ? "#00d4ff" : isListening ? "#a855f7" : "#00d4ff"} speed={2} />
 
-          <Environment preset="city" />
+          <hemisphereLight args={["#b1e1ff", "#b97a20", 0.4]} />
         </Canvas>
 
         {/* Tap hint overlay */}
