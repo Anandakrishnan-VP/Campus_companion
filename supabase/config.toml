@@ -2,3 +2,6 @@ project_id = "mxiqermqukcojanwzmlp"
 
 [functions.campus-chat]
 verify_jwt = false
+
+[functions.create-professor]
+verify_jwt = false

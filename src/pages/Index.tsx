@@ -178,7 +178,7 @@ const Index = () => {
           <p className="text-xs text-muted-foreground">Department of Computer Science</p>
         </div>
         <Link
-          to="/admin"
+          to="/login"
           className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"
         >
           <Settings className="w-5 h-5" />
