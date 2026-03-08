@@ -409,11 +409,11 @@ function FemaleAvatar({ isSpeaking, isListening, isThinking }: { isSpeaking: boo
         {/* Earrings */}
         <mesh position={[-0.26, -0.05, -0.01]}>
           <sphereGeometry args={[0.012, 8, 8]} />
-          <meshStandardMaterial color={dressAccent} emissive={dressAccent} emissiveIntensity={0.5} metalness={0.8} roughness={0.1} />
+          <meshStandardMaterial color={tieColor} emissive={tieColor} emissiveIntensity={0.5} metalness={0.8} roughness={0.1} />
         </mesh>
         <mesh position={[0.26, -0.05, -0.01]}>
           <sphereGeometry args={[0.012, 8, 8]} />
-          <meshStandardMaterial color={dressAccent} emissive={dressAccent} emissiveIntensity={0.5} metalness={0.8} roughness={0.1} />
+          <meshStandardMaterial color={tieColor} emissive={tieColor} emissiveIntensity={0.5} metalness={0.8} roughness={0.1} />
         </mesh>
       </group>
 
