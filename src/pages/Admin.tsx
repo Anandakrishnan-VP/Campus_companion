@@ -46,7 +46,7 @@ const Admin = () => {
   const [lDesc, setLDesc] = useState(""); const [lLandmarks, setLLandmarks] = useState("");
 
   // Create professor account
-  const [profEmail, setProfEmail] = useState(""); const [profPassword, setProfPassword] = useState("");
+  const [profId, setProfId] = useState(""); const [profPassword, setProfPassword] = useState("");
   const [profFacultyId, setProfFacultyId] = useState("");
 
   if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground font-display">Loading...</p></div>;
