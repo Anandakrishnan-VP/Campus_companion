@@ -193,6 +193,12 @@ const Professor = () => {
             )}
           </motion.div>
         )}
+
+        {activeTab === "notifications" && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <NotificationManager user={user} displayName={myFaculty?.name || "Professor"} />
+          </motion.div>
+        )}
       </div>
     </div>
   );
