@@ -27,6 +27,7 @@ const ChatInterface = ({
   messages,
   isLoading,
   onSendMessage,
+  onClearChat,
   isListening,
   onStartListening,
   onStopListening,
