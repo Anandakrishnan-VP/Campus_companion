@@ -194,10 +194,11 @@ const Index = () => {
           <NotificationPanel />
           <Link
             to="/issues"
-            className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/15 text-accent-foreground hover:bg-accent/25 transition-all border border-accent/20 font-display text-sm font-medium"
             title="Student Voice"
           >
-            <MessageSquareWarning className="w-5 h-5" />
+            <MessageSquareWarning className="w-4 h-4 text-accent" />
+            <span className="hidden sm:inline">Student Voice</span>
           </Link>
           <Link
             to="/login"
