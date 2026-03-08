@@ -19,12 +19,13 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const [facultyRes, timetableRes, eventsRes, locationsRes, attendanceRes] = await Promise.all([
+    const [facultyRes, timetableRes, eventsRes, locationsRes, attendanceRes, kbRes] = await Promise.all([
       supabase.from("faculty").select("*"),
       supabase.from("timetable").select("*"),
       supabase.from("events").select("*").gte("event_date", new Date().toISOString().split("T")[0]),
       supabase.from("locations").select("*"),
       supabase.from("attendance").select("*").eq("date", new Date().toISOString().split("T")[0]),
+      supabase.from("knowledge_base").select("*"),
     ]);
 
     const facultyData = facultyRes.data || [];
@@ -32,6 +33,7 @@ serve(async (req) => {
     const eventsData = eventsRes.data || [];
     const locationsData = locationsRes.data || [];
     const attendanceData = attendanceRes.data || [];
+    const kbData = kbRes.data || [];
 
     const dayOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
     const currentTime = new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
@@ -48,12 +50,17 @@ serve(async (req) => {
 
     const eventInfo = eventsData.map(e => `- ${e.title}: Venue: ${e.location || "TBD"}, Date: ${e.event_date}, Time: ${e.start_time?.slice(0,5) || "TBD"}${e.end_time ? "-" + e.end_time.slice(0,5) : ""}, ${e.description || ""}`).join("\n") || "No upcoming events.";
 
-    const SYSTEM_PROMPT = `You are a friendly, intelligent AI campus assistant deployed at a university kiosk. Your name is "Campus AI".
+    // Knowledge base grouped by category
+    const kbInfo = kbData.length > 0
+      ? kbData.map(kb => `[${kb.category}] ${kb.title}: ${kb.content}`).join("\n")
+      : "No additional college information available yet.";
+
+    const SYSTEM_PROMPT = `You are a friendly, intelligent AI campus assistant deployed at the NCERC (Nehru College of Engineering and Research Centre) kiosk. Your name is "NCERC AI".
 
 CURRENT TIME: ${currentTime} IST, ${dayOfWeek}
 TODAY'S DATE: ${new Date().toISOString().split("T")[0]}
 
-PERSONALITY: Warm, helpful, conversational. Keep responses concise (2-4 sentences). Speak naturally.
+PERSONALITY: Warm, helpful, conversational. Keep responses concise (2-4 sentences). Speak naturally. You represent NCERC's Department of CSE(AI & ML).
 
 CONVERSATION RULES:
 1. MEMORY: Remember the full conversation and reference previous questions naturally.
@@ -65,6 +72,7 @@ CONVERSATION RULES:
 7. Respond as spoken text - avoid markdown, special characters, or emojis.
 8. NAVIGATION: When someone asks how to reach or find a place, use the "HOW TO REACH" directions from location data. Give step-by-step navigation naturally.
 9. ATTENDANCE STATUS: If a faculty member's status is "unmarked", explicitly say they haven't marked their attendance today and their presence is unknown. Do NOT assume they are present or absent.
+10. COLLEGE KNOWLEDGE: Use the COLLEGE INFORMATION section to answer any questions about the college - admissions, courses, facilities, fees, hostel, placements, history, rules, etc. Answer confidently from this data.
 
 LIVE FACULTY DATA:
 ${facultyInfo || "No faculty data available yet. Admin has not added any faculty."}
@@ -74,6 +82,9 @@ ${locationInfo || "No location data available yet."}
 
 LIVE EVENTS:
 ${eventInfo}
+
+COLLEGE INFORMATION (from admin's Brain):
+${kbInfo}
 
 EMERGENCY CONTACTS:
 - Campus Security: +91-XXX-XXX-1234

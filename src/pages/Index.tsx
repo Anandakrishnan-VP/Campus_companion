@@ -154,11 +154,22 @@ const Index = () => {
     speech.stopListening();
   }, [speech]);
 
+  const handleAvatarTap = useCallback(() => {
+    if (speech.isListening) {
+      speech.stopListening();
+    } else {
+      speech.stopSpeaking();
+      speech.startListening((text) => {
+        handleSendMessage(text);
+      });
+    }
+  }, [speech, handleSendMessage]);
+
   const getStatus = () => {
     if (speech.isSpeaking) return "Speaking...";
-    if (speech.isListening) return "Listening... Tap stop when done";
+    if (speech.isListening) return "Listening... Tap avatar to stop";
     if (isThinking) return "Processing...";
-    return "Tap mic or type to ask";
+    return "Tap avatar or type to ask";
   };
 
   return (
@@ -199,6 +210,7 @@ const Index = () => {
                 isListening={speech.isListening}
                 isThinking={isThinking}
                 status={getStatus()}
+                onTap={handleAvatarTap}
               />
             </Suspense>
             <motion.div

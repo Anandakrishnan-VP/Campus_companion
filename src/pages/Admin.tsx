@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save } from "lucide-react";
+import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save, Brain } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationManager from "@/components/NotificationManager";
 import { useAuth } from "@/hooks/use-auth";
@@ -8,7 +8,7 @@ import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
-type Tab = "faculty" | "events" | "locations" | "notifications";
+type Tab = "faculty" | "events" | "locations" | "brain" | "notifications";
 
 interface ScheduleSlot {
   day_of_week: string;
@@ -28,10 +28,12 @@ const Admin = () => {
   const { data: timetable, refetch: refetchTimetable } = useRealtimeTable("timetable");
   const { data: events, refetch: refetchEvents } = useRealtimeTable("events");
   const { data: locations, refetch: refetchLocations } = useRealtimeTable("locations");
+  const { data: knowledgeBase, refetch: refetchKB } = useRealtimeTable("knowledge_base");
 
   const [showFacultyForm, setShowFacultyForm] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
   const [showLocationForm, setShowLocationForm] = useState(false);
+  const [showBrainForm, setShowBrainForm] = useState(false);
 
   // Faculty form
   const [fName, setFName] = useState(""); const [fAliases, setFAliases] = useState("");
@@ -74,12 +76,32 @@ const Admin = () => {
   const [profCredentials, setProfCredentials] = useState<{ id: string; password: string; name: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Brain (knowledge base) form
+  const [kbCategory, setKbCategory] = useState("General");
+  const [kbTitle, setKbTitle] = useState("");
+  const [kbContent, setKbContent] = useState("");
+
+  const BRAIN_CATEGORIES = ["General", "Admissions", "Courses", "Facilities", "History", "Placements", "Hostel", "Transport", "Fees", "Clubs & Activities", "Rules & Policies", "Other"];
+
   if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground font-display">Loading...</p></div>;
+
+  const saveKBEntry = async () => {
+    if (!kbTitle.trim() || !kbContent.trim()) { toast({ title: "Title and content required", variant: "destructive" }); return; }
+    await (supabase.from("knowledge_base") as any).insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim() });
+    setShowBrainForm(false); setKbTitle(""); setKbContent(""); setKbCategory("General"); refetchKB();
+    toast({ title: "Knowledge added to Brain" });
+  };
+
+  const deleteKBEntry = async (id: string) => {
+    await (supabase.from("knowledge_base") as any).delete().eq("id", id);
+    refetchKB();
+  };
 
   const tabs: { key: Tab; label: string; icon: typeof Users }[] = [
     { key: "faculty", label: "Faculty & Schedule", icon: Users },
     { key: "events", label: "Events", icon: Calendar },
     { key: "locations", label: "Locations", icon: MapPin },
+    { key: "brain", label: "Brain", icon: Brain },
     { key: "notifications", label: "Notifications", icon: Bell },
   ];
 
@@ -488,6 +510,48 @@ const Admin = () => {
                 </div>
               ))}
               {!showLocationForm && <AddButton label="Add Location" onClick={() => setShowLocationForm(true)} />}
+            </div>
+          </Section>
+        )}
+
+        {/* ===== BRAIN TAB ===== */}
+        {activeTab === "brain" && (
+          <Section title="🧠 Brain — College Knowledge Base">
+            <p className="text-xs text-muted-foreground mb-4">Add information about the college here. The AI assistant will use this to answer student queries.</p>
+            {showBrainForm && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div><label className={labelCls}>Category</label>
+                    <select className={inputCls} value={kbCategory} onChange={e => setKbCategory(e.target.value)}>
+                      {BRAIN_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                  <div><label className={labelCls}>Title *</label><input className={inputCls} value={kbTitle} onChange={e => setKbTitle(e.target.value)} placeholder="e.g. College Timings" /></div>
+                  <div className="col-span-2">
+                    <label className={labelCls}>Content *</label>
+                    <textarea className={inputCls + " min-h-[100px] resize-y"} value={kbContent} onChange={e => setKbContent(e.target.value)} placeholder="The college operates from 9:00 AM to 4:30 PM, Monday to Saturday. Library hours are 8:00 AM to 8:00 PM..." />
+                  </div>
+                </div>
+                <div className="flex gap-2 justify-end">
+                  <button onClick={() => { setShowBrainForm(false); setKbTitle(""); setKbContent(""); }} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
+                  <button onClick={saveKBEntry} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">Add to Brain</button>
+                </div>
+              </motion.div>
+            )}
+            <div className="space-y-3">
+              {knowledgeBase.map((kb: any) => (
+                <div key={kb.id} className="glass-card p-4 flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[10px] font-display font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary">{kb.category}</span>
+                      <p className="font-display font-semibold text-foreground text-sm">{kb.title}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground whitespace-pre-line line-clamp-3">{kb.content}</p>
+                  </div>
+                  <button onClick={() => deleteKBEntry(kb.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
+                </div>
+              ))}
+              {!showBrainForm && <AddButton label="Add Knowledge" onClick={() => setShowBrainForm(true)} />}
             </div>
           </Section>
         )}
