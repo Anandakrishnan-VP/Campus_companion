@@ -468,7 +468,7 @@ function FemaleAvatar({ isSpeaking, isListening, isThinking }: { isSpeaking: boo
       {/* ─── Shoulders (rounded) ─── */}
       <mesh position={[0.3, 0.08, 0]}>
         <sphereGeometry args={[0.08, 16, 16]} />
-        <meshStandardMaterial color={dressColor} roughness={0.4} />
+        <meshStandardMaterial color={blazerColor} roughness={0.5} />
       </mesh>
       <mesh position={[-0.3, 0.08, 0]}>
         <sphereGeometry args={[0.08, 16, 16]} />
