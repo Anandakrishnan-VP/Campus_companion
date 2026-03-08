@@ -19,13 +19,14 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const [facultyRes, timetableRes, eventsRes, locationsRes, attendanceRes, kbRes] = await Promise.all([
+    const [facultyRes, timetableRes, eventsRes, locationsRes, attendanceRes, kbRes, deptsRes] = await Promise.all([
       supabase.from("faculty").select("*"),
       supabase.from("timetable").select("*"),
       supabase.from("events").select("*").gte("event_date", new Date().toISOString().split("T")[0]),
       supabase.from("locations").select("*"),
       supabase.from("attendance").select("*").eq("date", new Date().toISOString().split("T")[0]),
       supabase.from("knowledge_base").select("*"),
+      supabase.from("departments").select("*"),
     ]);
 
     const facultyData = facultyRes.data || [];
