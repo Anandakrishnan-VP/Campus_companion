@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Users, Clock, Calendar, MapPin, Plus, Trash2, Edit2, X, Check, LogOut, UserPlus, Bell } from "lucide-react";
+import { ArrowLeft, Users, Clock, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationManager from "@/components/NotificationManager";
 import { useAuth } from "@/hooks/use-auth";
@@ -23,7 +23,6 @@ const Admin = () => {
   const [showTimetableForm, setShowTimetableForm] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
   const [showLocationForm, setShowLocationForm] = useState(false);
-  const [showCreateProfessor, setShowCreateProfessor] = useState(false);
 
   // Faculty form
   const [fName, setFName] = useState(""); const [fAliases, setFAliases] = useState("");
@@ -46,9 +45,10 @@ const Admin = () => {
   const [lFloor, setLFloor] = useState(""); const [lBlock, setLBlock] = useState("");
   const [lDesc, setLDesc] = useState(""); const [lLandmarks, setLLandmarks] = useState("");
 
-  // Create professor account
-  const [profId, setProfId] = useState(""); const [profPassword, setProfPassword] = useState("");
-  const [profFacultyId, setProfFacultyId] = useState("");
+  // Professor credentials modal
+  const [creatingProf, setCreatingProf] = useState(false);
+  const [profCredentials, setProfCredentials] = useState<{ id: string; password: string; name: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground font-display">Loading...</p></div>;
 
@@ -67,11 +67,32 @@ const Admin = () => {
     const payload = { name: fName.trim(), aliases: fAliases, department: fDept, office_location: fOffice, email: fEmail, phone: fPhone };
     if (editingId) {
       await supabase.from("faculty").update(payload).eq("id", editingId);
+      resetFacultyForm();
+      refetchFaculty();
     } else {
-      await supabase.from("faculty").insert(payload);
+      // Insert faculty first
+      const { data: newFac, error } = await supabase.from("faculty").insert(payload).select("id").single();
+      if (error || !newFac) {
+        toast({ title: "Error adding faculty", variant: "destructive" });
+        return;
+      }
+      resetFacultyForm();
+      refetchFaculty();
+      // Auto-create professor account
+      setCreatingProf(true);
+      try {
+        const { data, error: fnErr } = await supabase.functions.invoke("create-professor", {
+          body: { faculty_id: newFac.id },
+        });
+        if (fnErr) throw fnErr;
+        if (data?.error) throw new Error(data.error);
+        setProfCredentials({ id: data.professor_id, password: data.password, name: fName.trim() });
+        refetchFaculty();
+      } catch (err: any) {
+        toast({ title: "Faculty added but account creation failed", description: err.message, variant: "destructive" });
+      }
+      setCreatingProf(false);
     }
-    resetFacultyForm();
-    refetchFaculty();
   };
 
   const editFaculty = (f: any) => {
@@ -104,22 +125,11 @@ const Admin = () => {
 
   const deleteLocation = async (id: string) => { await supabase.from("locations").delete().eq("id", id); refetchLocations(); };
 
-  const createProfessorAccount = async () => {
-    if (!profId.trim() || !profPassword || !profFacultyId) {
-      toast({ title: "Fill all fields", variant: "destructive" }); return;
-    }
-    try {
-      const { data, error } = await supabase.functions.invoke("create-professor", {
-        body: { professor_id: profId.trim(), password: profPassword, faculty_id: profFacultyId },
-      });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      toast({ title: "Professor account created!" });
-      setShowCreateProfessor(false); setProfId(""); setProfPassword(""); setProfFacultyId("");
-      refetchFaculty();
-    } catch (err: any) {
-      toast({ title: "Error", description: err.message, variant: "destructive" });
-    }
+  const copyCredentials = () => {
+    if (!profCredentials) return;
+    navigator.clipboard.writeText(`ID: ${profCredentials.id}\nPassword: ${profCredentials.password}`);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const inputCls = "w-full bg-muted/50 border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 font-body";
@@ -131,11 +141,8 @@ const Admin = () => {
         <Link to="/" className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"><ArrowLeft className="w-5 h-5" /></Link>
         <div className="flex-1">
           <h1 className="text-lg font-display font-bold text-foreground">Admin Panel</h1>
-          <p className="text-xs text-muted-foreground">{user?.email?.replace("@campus.local", "")}</p>
+          <p className="text-xs text-muted-foreground">ID: 047</p>
         </div>
-        <button onClick={() => setShowCreateProfessor(true)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-accent/20 text-accent text-xs font-display font-medium hover:bg-accent/30 transition-colors">
-          <UserPlus className="w-4 h-4" /> Create Professor
-        </button>
         <button onClick={signOut} className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground"><LogOut className="w-5 h-5" /></button>
       </header>
 
@@ -164,7 +171,7 @@ const Admin = () => {
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button onClick={resetFacultyForm} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
-                  <button onClick={saveFaculty} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">{editingId ? "Update" : "Add"}</button>
+                  <button onClick={saveFaculty} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">{editingId ? "Update" : "Add & Create Login"}</button>
                 </div>
               </motion.div>
             )}
@@ -174,7 +181,7 @@ const Admin = () => {
                   <div className="flex-1 min-w-0">
                     <p className="font-display font-semibold text-foreground">{f.name}</p>
                     <p className="text-xs text-muted-foreground mt-1">Aliases: {f.aliases || "—"} · Dept: {f.department || "—"}</p>
-                    <p className="text-xs text-muted-foreground">Office: {f.office_location || "—"} · {f.user_id ? "✅ Has login" : "❌ No login"}</p>
+                    <p className="text-xs text-muted-foreground">Office: {f.office_location || "—"} · {f.user_id ? `✅ Login ID: ${f.email?.replace("@campus.local", "")}` : "❌ No login"}</p>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => editFaculty(f)} className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground"><Edit2 className="w-4 h-4" /></button>
@@ -309,27 +316,52 @@ const Admin = () => {
 
         {/* NOTIFICATIONS TAB */}
         {activeTab === "notifications" && (
-          <NotificationManager user={user} displayName={user?.email?.replace("@campus.local", "") || "Admin"} />
+          <NotificationManager user={user} displayName="Admin" />
         )}
       </div>
 
-      {/* Create Professor Modal */}
-      {showCreateProfessor && (
+      {/* Professor Credentials Modal */}
+      {(creatingProf || profCredentials) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="glass-card p-6 w-full max-w-md mx-4 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-display font-bold text-foreground">Create Professor Account</h2>
-              <button onClick={() => setShowCreateProfessor(false)}><X className="w-5 h-5 text-muted-foreground" /></button>
-            </div>
-            <div><label className={labelCls}>Link to Faculty *</label>
-              <select className={inputCls} value={profFacultyId} onChange={e => setProfFacultyId(e.target.value)}>
-                <option value="">Select faculty member</option>
-                {faculty.filter((f: any) => !f.user_id).map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
-              </select>
-            </div>
-            <div><label className={labelCls}>Professor ID *</label><input className={inputCls} value={profId} onChange={e => setProfId(e.target.value)} placeholder="e.g. prof_john" /></div>
-            <div><label className={labelCls}>Password *</label><input type="password" className={inputCls} value={profPassword} onChange={e => setProfPassword(e.target.value)} placeholder="min 6 characters" /></div>
-            <button onClick={createProfessorAccount} className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-display font-semibold text-sm">Create Account</button>
+          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="glass-card p-6 w-full max-w-sm mx-4 text-center space-y-4">
+            {creatingProf ? (
+              <>
+                <div className="w-10 h-10 mx-auto rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
+                  <UserPlus className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-sm text-muted-foreground font-display">Creating professor account...</p>
+              </>
+            ) : profCredentials ? (
+              <>
+                <div className="w-12 h-12 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
+                  <CheckCheck className="w-6 h-6 text-green-400" />
+                </div>
+                <h2 className="text-lg font-display font-bold text-foreground">Professor Account Created!</h2>
+                <p className="text-xs text-muted-foreground">Share these credentials with <strong>{profCredentials.name}</strong></p>
+                
+                <div className="bg-muted/50 rounded-xl p-4 space-y-2 text-left">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground font-display">Login ID</span>
+                    <span className="font-mono font-bold text-foreground text-lg">{profCredentials.id}</span>
+                  </div>
+                  <div className="border-t border-border/30" />
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground font-display">Password</span>
+                    <span className="font-mono font-bold text-foreground">{profCredentials.password}</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <button onClick={copyCredentials} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-display font-medium hover:bg-secondary/80 transition-colors">
+                    {copied ? <CheckCheck className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                    {copied ? "Copied!" : "Copy"}
+                  </button>
+                  <button onClick={() => setProfCredentials(null)} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-display font-semibold">
+                    Done
+                  </button>
+                </div>
+              </>
+            ) : null}
           </motion.div>
         </div>
       )}

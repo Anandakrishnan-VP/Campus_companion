@@ -31,10 +31,26 @@ serve(async (req) => {
 
     if (!callerRoles || callerRoles.length === 0) throw new Error("Not authorized - admin only");
 
-    const { professor_id, password, faculty_id } = await req.json();
-    if (!professor_id || !password || !faculty_id) throw new Error("professor_id, password, and faculty_id required");
+    const { faculty_id } = await req.json();
+    if (!faculty_id) throw new Error("faculty_id required");
 
-    const email = `${professor_id.toLowerCase().trim()}@campus.local`;
+    // Generate unique 3-digit numeric ID (100-999)
+    let numericId: string;
+    let attempts = 0;
+    while (true) {
+      numericId = String(Math.floor(100 + Math.random() * 900));
+      const email = `${numericId}@campus.local`;
+      // Check if this ID already exists
+      const { data: existing } = await supabase.auth.admin.listUsers();
+      const taken = existing?.users?.some((u: any) => u.email === email);
+      if (!taken) break;
+      attempts++;
+      if (attempts > 50) throw new Error("Could not generate unique ID");
+    }
+
+    // Generate a small password: first 3 letters of "ncerc" + numericId
+    const password = `ncerc${numericId}`;
+    const email = `${numericId}@campus.local`;
 
     // Create auth user
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
@@ -50,7 +66,12 @@ serve(async (req) => {
     // Link to faculty record
     await supabase.from("faculty").update({ user_id: newUser.user.id, email }).eq("id", faculty_id);
 
-    return new Response(JSON.stringify({ success: true, user_id: newUser.user.id }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      user_id: newUser.user.id,
+      professor_id: numericId,
+      password: password,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
