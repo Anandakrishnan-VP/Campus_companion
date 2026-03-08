@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -8,20 +8,65 @@ import QuickActions from "@/components/kiosk/QuickActions";
 import EmergencyButton from "@/components/kiosk/EmergencyButton";
 import { useSpeech } from "@/hooks/use-speech";
 
-const getMockResponse = (query: string): string => {
-  const q = query.toLowerCase();
-  if (q.includes("faculty") || q.includes("professor") || q.includes("swathy"))
-    return "Professor Swathy is currently in Room 204, Block A. She has a class from 10:00 AM to 11:00 AM. Her next free slot is at 11:15 AM. Would you like me to show directions to her office?";
-  if (q.includes("event") || q.includes("seminar"))
-    return "Today's Events: AI Workshop at Seminar Hall, 2 to 4 PM. Coding Contest at CS Lab 1, 10 AM to 1 PM. Guest Lecture on Cybersecurity at the Auditorium, 3:30 PM.";
-  if (q.includes("navigate") || q.includes("location") || q.includes("lab") || q.includes("room"))
-    return "The AI Lab is located on the Second Floor in Block B, near the east staircase. Turn right from the elevator and it's the third door on your left.";
-  if (q.includes("department"))
-    return "This building houses the following departments: Computer Science and Engineering, Artificial Intelligence and Data Science, Information Technology, and Electronics and Communication.";
-  if (q.includes("college") || q.includes("about"))
-    return "Welcome to our University! We are a leading institution of higher education with state-of-the-art facilities, dedicated faculty, and a vibrant campus life. The campus spans 50 acres with 8 academic blocks.";
-  return "I can help you with finding faculty, navigating the building, checking events, or answering general campus questions. What would you like to know?";
-};
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/campus-chat`;
+
+async function streamChat({
+  messages,
+  onDelta,
+  onDone,
+  onError,
+}: {
+  messages: { role: string; content: string }[];
+  onDelta: (text: string) => void;
+  onDone: () => void;
+  onError: (msg: string) => void;
+}) {
+  const resp = await fetch(CHAT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ messages }),
+  });
+
+  if (!resp.ok || !resp.body) {
+    const errorData = await resp.json().catch(() => ({}));
+    onError(errorData.error || "Failed to get response");
+    return;
+  }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let streamDone = false;
+
+  while (!streamDone) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    let newlineIndex: number;
+    while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+      let line = buffer.slice(0, newlineIndex);
+      buffer = buffer.slice(newlineIndex + 1);
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      if (line.startsWith(":") || line.trim() === "") continue;
+      if (!line.startsWith("data: ")) continue;
+      const jsonStr = line.slice(6).trim();
+      if (jsonStr === "[DONE]") { streamDone = true; break; }
+      try {
+        const parsed = JSON.parse(jsonStr);
+        const content = parsed.choices?.[0]?.delta?.content;
+        if (content) onDelta(content);
+      } catch {
+        buffer = line + "\n" + buffer;
+        break;
+      }
+    }
+  }
+  onDone();
+}
 
 const Index = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -33,12 +78,13 @@ const Index = () => {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
+  // Keep conversation history for AI context
+  const conversationRef = useRef<{ role: string; content: string }[]>([]);
 
   const speech = useSpeech();
 
   const handleSendMessage = useCallback(
     async (text: string) => {
-      // Stop any ongoing speech first
       speech.stopSpeaking();
 
       const userMsg: ChatMessage = { id: Date.now().toString(), role: "user", content: text };
@@ -46,23 +92,57 @@ const Index = () => {
       setIsLoading(true);
       setIsThinking(true);
 
-      // Simulate AI response
-      setTimeout(async () => {
-        const response = getMockResponse(text);
-        const assistantMsg: ChatMessage = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: response,
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
+      // Add to conversation history
+      conversationRef.current.push({ role: "user", content: text });
+
+      let assistantText = "";
+
+      const upsertAssistant = (chunk: string) => {
+        assistantText += chunk;
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role === "assistant" && last.id.startsWith("stream-")) {
+            return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantText } : m));
+          }
+          return [...prev, { id: "stream-" + Date.now(), role: "assistant", content: assistantText }];
+        });
+      };
+
+      try {
+        await streamChat({
+          messages: conversationRef.current,
+          onDelta: (chunk) => {
+            if (isThinking) setIsThinking(false);
+            upsertAssistant(chunk);
+          },
+          onDone: async () => {
+            setIsLoading(false);
+            setIsThinking(false);
+            conversationRef.current.push({ role: "assistant", content: assistantText });
+            // Speak the response
+            if (assistantText) {
+              await speech.speak(assistantText);
+            }
+          },
+          onError: (msg) => {
+            setIsLoading(false);
+            setIsThinking(false);
+            setMessages((prev) => [
+              ...prev,
+              { id: "error-" + Date.now(), role: "assistant", content: `Sorry, I encountered an issue: ${msg}. Please try again.` },
+            ]);
+          },
+        });
+      } catch {
         setIsLoading(false);
         setIsThinking(false);
-
-        // Speak the response
-        await speech.speak(response);
-      }, 1200);
+        setMessages((prev) => [
+          ...prev,
+          { id: "error-" + Date.now(), role: "assistant", content: "Sorry, something went wrong. Please try again." },
+        ]);
+      }
     },
-    [speech]
+    [speech, isThinking]
   );
 
   const handleStartListening = useCallback(() => {
@@ -85,13 +165,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Background effects */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px]" />
         <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[120px]" />
       </div>
 
-      {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-4">
         <div>
           <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
@@ -107,10 +185,8 @@ const Index = () => {
         </Link>
       </header>
 
-      {/* Main content */}
       <main className="relative z-10 max-w-5xl mx-auto px-4 pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-          {/* Left: Avatar + Quick Actions */}
           <div className="flex flex-col items-center gap-6 pt-4">
             <AvatarDisplay
               isSpeaking={speech.isSpeaking}
@@ -118,7 +194,6 @@ const Index = () => {
               isThinking={isThinking}
               status={getStatus()}
             />
-
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -132,7 +207,6 @@ const Index = () => {
             </motion.div>
           </div>
 
-          {/* Right: Chat */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}

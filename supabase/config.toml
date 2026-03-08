@@ -1,0 +1,4 @@
+project_id = "mxiqermqukcojanwzmlp"
+
+[functions.campus-chat]
+verify_jwt = false
