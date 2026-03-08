@@ -408,11 +408,10 @@ const Admin = () => {
                                               <select className={inputCls} value={esDay} onChange={e => setEsDay(e.target.value)}>
                                                 {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
                                               </select>
-                                              <input className={inputCls} value={esSubject} onChange={e => setEsSubject(e.target.value)} placeholder="Subject" />
                                               <input type="time" className={inputCls} value={esStart} onChange={e => setEsStart(e.target.value)} />
                                               <input type="time" className={inputCls} value={esEnd} onChange={e => setEsEnd(e.target.value)} />
-                                              <input className={inputCls} value={esRoom} onChange={e => setEsRoom(e.target.value)} placeholder="Room" />
-                                              <div className="flex gap-1">
+                                              <input className={inputCls} value={esRoom} onChange={e => setEsRoom(e.target.value)} placeholder="Location" />
+                                              <div className="flex gap-1 col-span-2">
                                                 <button onClick={() => setEditingSlotId(null)} className="flex-1 px-2 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-display">Cancel</button>
                                                 <button onClick={saveEditSlot} className="flex-1 px-2 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-display font-semibold flex items-center justify-center gap-1"><Save className="w-3 h-3" />Save</button>
                                               </div>
@@ -421,7 +420,7 @@ const Admin = () => {
                                         ) : (
                                           <div className="flex items-center justify-between bg-muted/20 rounded-lg px-3 py-2">
                                             <span className="text-xs text-foreground font-body">
-                                              {slot.start_time?.slice(0,5)}–{slot.end_time?.slice(0,5)} · {slot.subject} · {slot.room}
+                                              {slot.start_time?.slice(0,5)}–{slot.end_time?.slice(0,5)} · {slot.room || "No location"}
                                               {slot.is_cancelled && <span className="text-destructive ml-1">(Cancelled)</span>}
                                             </span>
                                             <div className="flex gap-1">
@@ -445,18 +444,17 @@ const Admin = () => {
                                   <select className={inputCls} value={nsDay} onChange={e => setNsDay(e.target.value)}>
                                     {DAYS.map(d => <option key={d} value={d}>{d}</option>)}
                                   </select>
-                                  <input className={inputCls} value={nsSubject} onChange={e => setNsSubject(e.target.value)} placeholder="Subject *" />
                                   <input type="time" className={inputCls} value={nsStart} onChange={e => setNsStart(e.target.value)} />
                                   <input type="time" className={inputCls} value={nsEnd} onChange={e => setNsEnd(e.target.value)} />
-                                  <input className={inputCls} value={nsRoom} onChange={e => setNsRoom(e.target.value)} placeholder="Room" />
-                                  <div className="flex gap-1">
+                                  <input className={inputCls} value={nsRoom} onChange={e => setNsRoom(e.target.value)} placeholder="Location" />
+                                  <div className="flex gap-1 col-span-2">
                                     <button onClick={() => setAddingSlotFor(null)} className="flex-1 px-2 py-2 rounded-lg bg-secondary text-secondary-foreground text-xs font-display">Cancel</button>
                                     <button onClick={() => addNewSlotToFaculty(f.id)} className="flex-1 px-2 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-display font-semibold">Add</button>
                                   </div>
                                 </div>
                               </div>
                             ) : (
-                              <button onClick={() => { setAddingSlotFor(f.id); setNsSubject(""); setNsRoom(""); }}
+                              <button onClick={() => { setAddingSlotFor(f.id); setNsRoom(""); }}
                                 className="w-full py-2 rounded-lg border border-dashed border-border/50 text-xs text-muted-foreground hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center gap-1 font-display">
                                 <Plus className="w-3.5 h-3.5" /> Add Schedule Slot
                               </button>
