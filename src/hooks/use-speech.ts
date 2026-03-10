@@ -105,43 +105,77 @@ export function useSpeech(): UseSpeechReturn {
     }, 300);
   }, []);
 
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
   const speak = useCallback((text: string): Promise<void> => {
-    return new Promise((resolve) => {
-      if (!window.speechSynthesis) {
-        resolve();
-        return;
+    return new Promise(async (resolve) => {
+      // Clean text for TTS (remove markdown, etc.)
+      const cleanText = text
+        .replace(/[*_~`#>\[\]()]/g, '')
+        .replace(/\n{2,}/g, '. ')
+        .replace(/\n/g, ' ')
+        .trim();
+
+      if (!cleanText) { resolve(); return; }
+
+      setIsSpeaking(true);
+
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            },
+            body: JSON.stringify({ text: cleanText }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`TTS request failed: ${response.status}`);
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audioRef.current = audio;
+
+        audio.onended = () => {
+          setIsSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+          audioRef.current = null;
+          resolve();
+        };
+        audio.onerror = () => {
+          console.error("[Speech] ElevenLabs audio playback error");
+          setIsSpeaking(false);
+          URL.revokeObjectURL(audioUrl);
+          audioRef.current = null;
+          resolve();
+        };
+
+        await audio.play();
+      } catch (err) {
+        console.error("[Speech] ElevenLabs TTS error:", err);
+        // Fallback to browser TTS
+        if (window.speechSynthesis) {
+          const utterance = new SpeechSynthesisUtterance(cleanText);
+          utterance.rate = 1;
+          utterance.pitch = 1.05;
+          const voices = window.speechSynthesis.getVoices();
+          const preferred = voices.find((v) => v.lang.startsWith("en"));
+          if (preferred) utterance.voice = preferred;
+          utterance.onend = () => { setIsSpeaking(false); resolve(); };
+          utterance.onerror = () => { setIsSpeaking(false); resolve(); };
+          window.speechSynthesis.speak(utterance);
+        } else {
+          setIsSpeaking(false);
+          resolve();
+        }
       }
-
-      window.speechSynthesis.cancel();
-
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1;
-      utterance.pitch = 1.05;
-      utterance.volume = 1;
-
-      const voices = window.speechSynthesis.getVoices();
-      const preferred =
-        voices.find((v) => v.name.includes("Google") && v.name.includes("Female")) ||
-        voices.find((v) => v.lang.startsWith("en") && v.name.toLowerCase().includes("female")) ||
-        voices.find((v) => v.lang.startsWith("en") && v.name.toLowerCase().includes("samantha")) ||
-        voices.find((v) => v.lang.startsWith("en"));
-      if (preferred) {
-        utterance.voice = preferred;
-        console.log("[Speech] Using voice:", preferred.name);
-      }
-
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => {
-        setIsSpeaking(false);
-        resolve();
-      };
-      utterance.onerror = (e) => {
-        console.log("[Speech] TTS error:", e);
-        setIsSpeaking(false);
-        resolve();
-      };
-
-      window.speechSynthesis.speak(utterance);
     });
   }, []);
 
