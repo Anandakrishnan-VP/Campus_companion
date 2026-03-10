@@ -180,6 +180,10 @@ export function useSpeech(): UseSpeechReturn {
   }, []);
 
   const stopSpeaking = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
     window.speechSynthesis?.cancel();
     setIsSpeaking(false);
   }, []);
