@@ -672,7 +672,7 @@ const Admin = () => {
 
       {/* Professor Credentials Modal */}
       {(creatingProf || profCredentials) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm" onClick={() => { if (!creatingProf) { setProfCredentials(null); } }}>
           <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="glass-card p-6 w-full max-w-sm mx-4 text-center space-y-4">
             {creatingProf ? (
               <>
