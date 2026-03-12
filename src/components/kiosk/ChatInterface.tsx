@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Send, Mic, Square, Loader2, Volume2, VolumeX, Languages, Trash2 } from "lucide-react";
 
@@ -21,9 +21,13 @@ interface ChatInterfaceProps {
   voiceSupported: boolean;
 }
 
+export interface ChatInterfaceHandle {
+  setInput: (text: string) => void;
+}
+
 const TRANSLATE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate-malayalam`;
 
-const ChatInterface = ({
+const ChatInterface = forwardRef<ChatInterfaceHandle, ChatInterfaceProps>(({
   messages,
   isLoading,
   onSendMessage,
@@ -34,12 +38,14 @@ const ChatInterface = ({
   isSpeaking,
   onStopSpeaking,
   voiceSupported,
-}: ChatInterfaceProps) => {
+}: ChatInterfaceProps, ref) => {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [translatedMap, setTranslatedMap] = useState<Record<string, string>>({});
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [showTranslation, setShowTranslation] = useState<Record<string, boolean>>({});
+
+  useImperativeHandle(ref, () => ({ setInput }));
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -245,6 +251,6 @@ const ChatInterface = ({
       </div>
     </div>
   );
-};
+});
 
 export default ChatInterface;

@@ -3,6 +3,7 @@ import { Users, MapPin, Calendar, AlertTriangle, Info, GraduationCap } from "luc
 
 interface QuickActionsProps {
   onAction: (query: string) => void;
+  onFillInput?: (query: string) => void;
 }
 
 const actions = [
@@ -13,7 +14,7 @@ const actions = [
   { icon: Info, label: "About", query: "Tell me about this college", color: "primary" },
 ];
 
-const QuickActions = ({ onAction }: QuickActionsProps) => {
+const QuickActions = ({ onAction, onFillInput }: QuickActionsProps) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
       {actions.map((action, i) => (
@@ -24,7 +25,7 @@ const QuickActions = ({ onAction }: QuickActionsProps) => {
           transition={{ delay: i * 0.08 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => onAction(action.query)}
+          onClick={() => onFillInput ? onFillInput(action.query) : onAction(action.query)}
           className="glass-card-hover flex flex-col items-center gap-2 p-4 cursor-pointer group"
         >
           <action.icon className="w-6 h-6 text-primary transition-all group-hover:drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />

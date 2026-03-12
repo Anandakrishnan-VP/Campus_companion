@@ -5,7 +5,7 @@ import { Settings, MessageSquareWarning } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationPanel from "@/components/kiosk/NotificationPanel";
 const Avatar3D = lazy(() => import("@/components/kiosk/Avatar3D"));
-import ChatInterface, { type ChatMessage } from "@/components/kiosk/ChatInterface";
+import ChatInterface, { type ChatMessage, type ChatInterfaceHandle } from "@/components/kiosk/ChatInterface";
 import QuickActions from "@/components/kiosk/QuickActions";
 import EmergencyButton from "@/components/kiosk/EmergencyButton";
 import { useSpeech } from "@/hooks/use-speech";
@@ -81,6 +81,8 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const conversationRef = useRef<{ role: string; content: string }[]>([]);
+
+  const chatRef = useRef<ChatInterfaceHandle>(null);
 
   const speech = useSpeech();
 
@@ -244,7 +246,7 @@ const Index = () => {
               <p className="text-xs text-muted-foreground mb-2 font-display uppercase tracking-wider text-center">
                 Quick Actions
               </p>
-              <QuickActions onAction={handleSendMessage} />
+              <QuickActions onAction={handleSendMessage} onFillInput={(q) => chatRef.current?.setInput(q)} />
             </motion.div>
           </div>
 
@@ -254,6 +256,7 @@ const Index = () => {
             transition={{ delay: 0.2 }}
           >
             <ChatInterface
+              ref={chatRef}
               messages={messages}
               isLoading={isLoading}
               onSendMessage={handleSendMessage}
