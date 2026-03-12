@@ -82,6 +82,8 @@ const Index = () => {
   const [isThinking, setIsThinking] = useState(false);
   const conversationRef = useRef<{ role: string; content: string }[]>([]);
 
+  const chatRef = useRef<ChatInterfaceHandle>(null);
+
   const speech = useSpeech();
 
   const handleClearChat = useCallback(() => {
