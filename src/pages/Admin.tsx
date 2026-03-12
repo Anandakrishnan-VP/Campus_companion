@@ -172,14 +172,15 @@ const Admin = () => {
       setCreatingProf(true);
       try {
         const { data, error: fnErr } = await supabase.functions.invoke("create-professor", { body: { faculty_id: newFac.id } });
+        setCreatingProf(false);
         if (fnErr) throw fnErr;
         if (data?.error) throw new Error(data.error);
         setProfCredentials({ id: data.professor_id, password: data.password, name: savedName });
         refetchFaculty();
       } catch (err: any) {
+        setCreatingProf(false);
         toast({ title: "Faculty added but account creation failed", description: err.message, variant: "destructive" });
       }
-      setCreatingProf(false);
     }
   };
 
