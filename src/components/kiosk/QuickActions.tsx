@@ -3,6 +3,7 @@ import { Users, MapPin, Calendar, AlertTriangle, Info, GraduationCap } from "luc
 
 interface QuickActionsProps {
   onAction: (query: string) => void;
+  onFillInput?: (query: string) => void;
 }
 
 const actions = [
