@@ -256,6 +256,7 @@ const Index = () => {
             transition={{ delay: 0.2 }}
           >
             <ChatInterface
+              ref={chatRef}
               messages={messages}
               isLoading={isLoading}
               onSendMessage={handleSendMessage}
