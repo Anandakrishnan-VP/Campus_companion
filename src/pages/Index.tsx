@@ -16,20 +16,20 @@ async function streamChat({
   messages,
   onDelta,
   onDone,
-  onError,
-}: {
-  messages: { role: string; content: string }[];
-  onDelta: (text: string) => void;
-  onDone: () => void;
-  onError: (msg: string) => void;
-}) {
+  onError
+
+
+
+
+
+}: {messages: {role: string;content: string;}[];onDelta: (text: string) => void;onDone: () => void;onError: (msg: string) => void;}) {
   const resp = await fetch(CHAT_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
     },
-    body: JSON.stringify({ messages }),
+    body: JSON.stringify({ messages })
   });
 
   if (!resp.ok || !resp.body) {
@@ -56,7 +56,7 @@ async function streamChat({
       if (line.startsWith(":") || line.trim() === "") continue;
       if (!line.startsWith("data: ")) continue;
       const jsonStr = line.slice(6).trim();
-      if (jsonStr === "[DONE]") { streamDone = true; break; }
+      if (jsonStr === "[DONE]") {streamDone = true;break;}
       try {
         const parsed = JSON.parse(jsonStr);
         const content = parsed.choices?.[0]?.delta?.content;
@@ -72,15 +72,15 @@ async function streamChat({
 
 const Index = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: "Hello! I'm Yukti, your NCERC AI Assistant. I can help you find faculty, navigate the campus, check events, and more. How can I help you today?",
-    },
-  ]);
+  {
+    id: "welcome",
+    role: "assistant",
+    content: "Hello! I'm Yukti, your NCERC AI Assistant. I can help you find faculty, navigate the campus, check events, and more. How can I help you today?"
+  }]
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
-  const conversationRef = useRef<{ role: string; content: string }[]>([]);
+  const conversationRef = useRef<{role: string;content: string;}[]>([]);
 
   const chatRef = useRef<ChatInterfaceHandle>(null);
 
@@ -92,7 +92,7 @@ const Index = () => {
     setMessages([{
       id: "welcome",
       role: "assistant",
-      content: "Hello! I'm Yukti, your NCERC AI Assistant. I can help you find faculty, navigate the campus, check events, and more. How can I help you today?",
+      content: "Hello! I'm Yukti, your NCERC AI Assistant. I can help you find faculty, navigate the campus, check events, and more. How can I help you today?"
     }]);
   }, [speech]);
 
@@ -114,7 +114,7 @@ const Index = () => {
         setMessages((prev) => {
           const last = prev[prev.length - 1];
           if (last?.role === "assistant" && last.id.startsWith("stream-")) {
-            return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantText } : m));
+            return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantText } : m);
           }
           return [...prev, { id: "stream-" + Date.now(), role: "assistant", content: assistantText }];
         });
@@ -139,18 +139,18 @@ const Index = () => {
             setIsLoading(false);
             setIsThinking(false);
             setMessages((prev) => [
-              ...prev,
-              { id: "error-" + Date.now(), role: "assistant", content: `Sorry, I encountered an issue: ${msg}. Please try again.` },
-            ]);
-          },
+            ...prev,
+            { id: "error-" + Date.now(), role: "assistant", content: `Sorry, I encountered an issue: ${msg}. Please try again.` }]
+            );
+          }
         });
       } catch {
         setIsLoading(false);
         setIsThinking(false);
         setMessages((prev) => [
-          ...prev,
-          { id: "error-" + Date.now(), role: "assistant", content: "Sorry, something went wrong. Please try again." },
-        ]);
+        ...prev,
+        { id: "error-" + Date.now(), role: "assistant", content: "Sorry, something went wrong. Please try again." }]
+        );
       }
     },
     [speech, isThinking]
@@ -199,7 +199,7 @@ const Index = () => {
             <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
               NCERC <span className="text-primary glow-text">AI</span> Kiosk
             </h1>
-            <p className="text-xs text-muted-foreground">Department of CSE(AI & ML)</p>
+            <p className="text-xs text-white">Department of CSE(AI & ML)</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -207,15 +207,15 @@ const Index = () => {
           <Link
             to="/issues"
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/15 text-accent-foreground hover:bg-accent/25 transition-all border border-accent/20 font-display text-sm font-medium"
-            title="Student Voice"
-          >
+            title="Student Voice">
+            
             <MessageSquareWarning className="w-4 h-4 text-accent" />
             <span className="hidden sm:inline">Student Voice</span>
           </Link>
           <Link
             to="/login"
-            className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"
-          >
+            className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors">
+            
             <Settings className="w-5 h-5" />
           </Link>
         </div>
@@ -225,7 +225,7 @@ const Index = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           <div className="flex flex-col items-center gap-6 pt-4">
             <Suspense fallback={
-              <div className="w-52 h-52 md:w-64 md:h-64 rounded-full bg-muted/20 flex items-center justify-center">
+            <div className="w-52 h-52 md:w-64 md:h-64 rounded-full bg-muted/20 flex items-center justify-center">
                 <span className="text-muted-foreground text-sm font-display">Loading avatar...</span>
               </div>
             }>
@@ -234,16 +234,16 @@ const Index = () => {
                 isListening={speech.isListening}
                 isThinking={isThinking}
                 status={getStatus()}
-                onTap={handleAvatarTap}
-              />
+                onTap={handleAvatarTap} />
+              
             </Suspense>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="w-full"
-            >
-              <p className="text-xs text-muted-foreground mb-2 font-display uppercase tracking-wider text-center">
+              className="w-full">
+              
+              <p className="text-xs mb-2 font-display uppercase tracking-wider text-center text-white">
                 Quick Actions
               </p>
               <QuickActions onAction={handleSendMessage} onFillInput={(q) => chatRef.current?.setInput(q)} />
@@ -253,8 +253,8 @@ const Index = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}
-          >
+            transition={{ delay: 0.2 }}>
+            
             <ChatInterface
               ref={chatRef}
               messages={messages}
@@ -266,8 +266,8 @@ const Index = () => {
               onStopListening={handleStopListening}
               isSpeaking={speech.isSpeaking}
               onStopSpeaking={speech.stopSpeaking}
-              voiceSupported={speech.supported}
-            />
+              voiceSupported={speech.supported} />
+            
           </motion.div>
         </div>
       </main>
@@ -275,12 +275,12 @@ const Index = () => {
       <EmergencyButton />
 
       <footer className="relative z-10 text-center px-6 py-4 pb-6">
-        <p className="text-[10px] text-muted-foreground/50 font-display leading-relaxed max-w-lg mx-auto">
+        <p className="text-[10px] font-display leading-relaxed max-w-lg mx-auto text-white">
           AI-generated responses may sometimes be inaccurate or incomplete. Please verify important information through official university sources.
         </p>
       </footer>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Index;

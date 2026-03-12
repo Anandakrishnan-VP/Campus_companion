@@ -13,7 +13,7 @@ interface Avatar3DProps {
 }
 
 /* ─── Stylized Female Character ─── */
-function FemaleAvatar({ isSpeaking, isListening, isThinking }: { isSpeaking: boolean; isListening: boolean; isThinking: boolean }) {
+function FemaleAvatar({ isSpeaking, isListening, isThinking }: {isSpeaking: boolean;isListening: boolean;isThinking: boolean;}) {
   const headRef = useRef<THREE.Group>(null);
   const mouthRef = useRef<THREE.Mesh>(null);
   const leftArmRef = useRef<THREE.Group>(null);
@@ -464,12 +464,12 @@ function FemaleAvatar({ isSpeaking, isListening, isThinking }: { isSpeaking: boo
         <sphereGeometry args={[0.08, 16, 16]} />
         <meshStandardMaterial color={blazerColor} roughness={0.5} />
       </mesh>
-    </group>
-  );
+    </group>);
+
 }
 
 /* ─── Glow ring under character ─── */
-function GlowRing({ color, speed }: { color: string; speed: number }) {
+function GlowRing({ color, speed }: {color: string;speed: number;}) {
   const ref = useRef<THREE.Mesh>(null);
   useFrame((state) => {
     if (ref.current) {
@@ -482,8 +482,8 @@ function GlowRing({ color, speed }: { color: string; speed: number }) {
     <mesh ref={ref} position={[0, -0.95, 0]} rotation={[Math.PI / 2, 0, 0]}>
       <ringGeometry args={[0.7, 0.82, 64]} />
       <meshBasicMaterial color={color} transparent opacity={0.15} side={THREE.DoubleSide} />
-    </mesh>
-  );
+    </mesh>);
+
 }
 
 /* ─── Main component ─── */
@@ -493,23 +493,23 @@ const Avatar3D = ({ isSpeaking = false, isListening = false, isThinking = false,
       <div
         className="relative w-52 h-52 md:w-64 md:h-64 cursor-pointer"
         onClick={onTap}
-        title={isListening ? "Tap to stop listening" : "Tap to start listening"}
-      >
+        title={isListening ? "Tap to stop listening" : "Tap to start listening"}>
+        
         {/* Glow backdrop */}
         <div className={`absolute inset-0 rounded-full transition-all duration-500 ${
-          isSpeaking
-            ? "shadow-[0_0_80px_hsl(var(--primary)/0.4),0_0_160px_hsl(var(--primary)/0.15)]"
-            : isListening
-            ? "shadow-[0_0_60px_hsl(var(--accent)/0.35),0_0_120px_hsl(var(--accent)/0.1)]"
-            : "shadow-[0_0_30px_hsl(var(--primary)/0.1)]"
-        }`} />
+        isSpeaking ?
+        "shadow-[0_0_80px_hsl(var(--primary)/0.4),0_0_160px_hsl(var(--primary)/0.15)]" :
+        isListening ?
+        "shadow-[0_0_60px_hsl(var(--accent)/0.35),0_0_120px_hsl(var(--accent)/0.1)]" :
+        "shadow-[0_0_30px_hsl(var(--primary)/0.1)]"}`
+        } />
 
         <Canvas
           camera={{ position: [0, 0.2, 2.6], fov: 40 }}
           style={{ borderRadius: "50%", background: "transparent" }}
           gl={{ alpha: true, antialias: true }}
-          dpr={[1, 1.5]}
-        >
+          dpr={[1, 1.5]}>
+          
           <ambientLight intensity={0.55} />
           <directionalLight position={[2, 3, 2]} intensity={1.3} color="#ffffff" />
           <directionalLight position={[-2, 1, -1]} intensity={0.25} color="#00d4ff" />
@@ -526,38 +526,38 @@ const Avatar3D = ({ isSpeaking = false, isListening = false, isThinking = false,
         </Canvas>
 
         {/* Tap hint overlay */}
-        {!isSpeaking && !isListening && !isThinking && (
-          <div className="absolute inset-0 rounded-full flex items-end justify-center pb-2 pointer-events-none">
+        {!isSpeaking && !isListening && !isThinking &&
+        <div className="absolute inset-0 rounded-full flex items-end justify-center pb-2 pointer-events-none">
             <motion.span
-              className="text-[9px] text-muted-foreground/60 font-display bg-background/40 px-2 py-0.5 rounded-full backdrop-blur-sm"
-              animate={{ opacity: [0.4, 0.8, 0.4] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            >
+            className="text-[9px] text-muted-foreground/60 font-display bg-background/40 px-2 py-0.5 rounded-full backdrop-blur-sm"
+            animate={{ opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 3, repeat: Infinity }}>
+            
               Tap to speak
             </motion.span>
           </div>
-        )}
+        }
 
         {/* Speaking bars */}
         <AnimatePresence>
-          {isSpeaking && (
-            <motion.div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              {[0, 1, 2, 3, 4].map((i) => (
-                <motion.div key={i} className="w-1 bg-primary rounded-full" animate={{ height: [4, 14 + Math.random() * 8, 4] }} transition={{ duration: 0.3 + Math.random() * 0.3, repeat: Infinity, delay: i * 0.08 }} />
-              ))}
+          {isSpeaking &&
+          <motion.div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              {[0, 1, 2, 3, 4].map((i) =>
+            <motion.div key={i} className="w-1 bg-primary rounded-full" animate={{ height: [4, 14 + Math.random() * 8, 4] }} transition={{ duration: 0.3 + Math.random() * 0.3, repeat: Infinity, delay: i * 0.08 }} />
+            )}
             </motion.div>
-          )}
+          }
         </AnimatePresence>
 
         {/* Listening bars */}
         <AnimatePresence>
-          {isListening && (
-            <motion.div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}>
-              {[0, 1, 2, 3, 4, 5, 6].map((i) => (
-                <motion.div key={i} className="w-1 bg-accent rounded-full" animate={{ height: [3, 8 + Math.random() * 10, 3] }} transition={{ duration: 0.2 + Math.random() * 0.3, repeat: Infinity, delay: i * 0.05 }} />
-              ))}
+          {isListening &&
+          <motion.div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}>
+              {[0, 1, 2, 3, 4, 5, 6].map((i) =>
+            <motion.div key={i} className="w-1 bg-accent rounded-full" animate={{ height: [3, 8 + Math.random() * 10, 3] }} transition={{ duration: 0.2 + Math.random() * 0.3, repeat: Infinity, delay: i * 0.05 }} />
+            )}
             </motion.div>
-          )}
+          }
         </AnimatePresence>
       </div>
 
@@ -565,15 +565,15 @@ const Avatar3D = ({ isSpeaking = false, isListening = false, isThinking = false,
       <motion.div className="flex items-center gap-2" animate={{ opacity: [0.7, 1, 0.7] }} transition={{ duration: 2, repeat: Infinity }}>
         <motion.div
           className={`w-2 h-2 rounded-full transition-colors duration-300 ${
-            isSpeaking ? "bg-primary" : isListening ? "bg-accent" : isThinking ? "bg-primary" : "bg-primary/60"
-          }`}
+          isSpeaking ? "bg-primary" : isListening ? "bg-accent" : isThinking ? "bg-primary" : "bg-primary/60"}`
+          }
           animate={isSpeaking ? { scale: [1, 1.4, 1] } : isListening ? { scale: [1, 1.3, 1] } : { opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: isSpeaking ? 0.4 : 1.5, repeat: Infinity }}
-        />
-        <span className="text-sm text-muted-foreground font-display tracking-wide uppercase">{status}</span>
+          transition={{ duration: isSpeaking ? 0.4 : 1.5, repeat: Infinity }} />
+        
+        <span className="text-sm font-display tracking-wide uppercase text-white">{status}</span>
       </motion.div>
-    </div>
-  );
+    </div>);
+
 };
 
 export default Avatar3D;

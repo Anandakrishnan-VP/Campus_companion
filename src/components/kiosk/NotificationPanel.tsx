@@ -12,10 +12,10 @@ interface Notification {
   created_at: string;
 }
 
-const priorityConfig: Record<string, { icon: typeof Info; color: string; bg: string }> = {
+const priorityConfig: Record<string, {icon: typeof Info;color: string;bg: string;}> = {
   normal: { icon: Info, color: "text-primary", bg: "bg-primary/10" },
   important: { icon: Megaphone, color: "text-accent", bg: "bg-accent/10" },
-  urgent: { icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10" },
+  urgent: { icon: AlertTriangle, color: "text-destructive", bg: "bg-destructive/10" }
 };
 
 const NotificationPanel = () => {
@@ -27,11 +27,11 @@ const NotificationPanel = () => {
   );
 
   const fetchNotifications = async () => {
-    const { data } = await supabase
-      .from("notifications")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .limit(50);
+    const { data } = await supabase.
+    from("notifications").
+    select("*").
+    order("created_at", { ascending: false }).
+    limit(50);
     if (data) {
       setNotifications(data as Notification[]);
       const unseen = data.filter((n: any) => n.created_at > lastSeen).length;
@@ -42,14 +42,14 @@ const NotificationPanel = () => {
   useEffect(() => {
     fetchNotifications();
 
-    const channel = supabase
-      .channel("notifications-realtime")
-      .on("postgres_changes" as any, { event: "*", schema: "public", table: "notifications" } as any, () => {
-        fetchNotifications();
-      })
-      .subscribe();
+    const channel = supabase.
+    channel("notifications-realtime").
+    on("postgres_changes" as any, { event: "*", schema: "public", table: "notifications" } as any, () => {
+      fetchNotifications();
+    }).
+    subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => {supabase.removeChannel(channel);};
   }, [lastSeen]);
 
   const handleOpen = () => {
@@ -75,36 +75,36 @@ const NotificationPanel = () => {
     <>
       <button
         onClick={handleOpen}
-        className="relative p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors"
-      >
-        <Bell className="w-5 h-5" />
-        {unreadCount > 0 && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center"
-          >
+        className="relative p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors">
+        
+        <Bell className="w-5 h-5 text-yellow-300" />
+        {unreadCount > 0 &&
+        <motion.span
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center">
+          
             {unreadCount > 9 ? "9+" : unreadCount}
           </motion.span>
-        )}
+        }
       </button>
 
       <AnimatePresence>
-        {open && (
-          <>
+        {open &&
+        <>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-background/60 backdrop-blur-sm"
-              onClick={() => setOpen(false)}
-            />
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-background/60 backdrop-blur-sm"
+            onClick={() => setOpen(false)} />
+          
             <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="fixed top-4 right-4 left-4 sm:left-auto sm:w-[400px] z-50 max-h-[80vh] flex flex-col glass-card overflow-hidden"
-            >
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-4 right-4 left-4 sm:left-auto sm:w-[400px] z-50 max-h-[80vh] flex flex-col glass-card overflow-hidden">
+            
               <div className="flex items-center justify-between px-5 py-4 border-b border-border/30">
                 <div className="flex items-center gap-2">
                   <Bell className="w-5 h-5 text-primary" />
@@ -116,22 +116,22 @@ const NotificationPanel = () => {
               </div>
 
               <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                {notifications.length === 0 ? (
-                  <div className="py-12 text-center">
+                {notifications.length === 0 ?
+              <div className="py-12 text-center">
                     <Bell className="w-8 h-8 mx-auto text-muted-foreground/40 mb-2" />
                     <p className="text-sm text-muted-foreground">No notifications yet</p>
-                  </div>
-                ) : (
-                  notifications.map((n) => {
-                    const cfg = priorityConfig[n.priority] || priorityConfig.normal;
-                    const Icon = cfg.icon;
-                    return (
-                      <motion.div
-                        key={n.id}
-                        initial={{ opacity: 0, x: 10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className={`rounded-xl p-4 ${cfg.bg} border border-border/20`}
-                      >
+                  </div> :
+
+              notifications.map((n) => {
+                const cfg = priorityConfig[n.priority] || priorityConfig.normal;
+                const Icon = cfg.icon;
+                return (
+                  <motion.div
+                    key={n.id}
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className={`rounded-xl p-4 ${cfg.bg} border border-border/20`}>
+                    
                         <div className="flex items-start gap-3">
                           <Icon className={`w-4 h-4 mt-0.5 shrink-0 ${cfg.color}`} />
                           <div className="flex-1 min-w-0">
@@ -144,17 +144,17 @@ const NotificationPanel = () => {
                             </div>
                           </div>
                         </div>
-                      </motion.div>
-                    );
-                  })
-                )}
+                      </motion.div>);
+
+              })
+              }
               </div>
             </motion.div>
           </>
-        )}
+        }
       </AnimatePresence>
-    </>
-  );
+    </>);
+
 };
 
 export default NotificationPanel;
