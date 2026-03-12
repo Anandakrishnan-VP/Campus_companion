@@ -249,6 +249,6 @@ const ChatInterface = forwardRef<ChatInterfaceHandle, ChatInterfaceProps>(({
       </div>
     </div>
   );
-};
+});
 
 export default ChatInterface;
