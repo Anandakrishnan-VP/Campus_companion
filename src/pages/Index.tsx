@@ -246,7 +246,7 @@ const Index = () => {
               <p className="text-xs text-muted-foreground mb-2 font-display uppercase tracking-wider text-center">
                 Quick Actions
               </p>
-              <QuickActions onAction={handleSendMessage} />
+              <QuickActions onAction={handleSendMessage} onFillInput={(q) => chatRef.current?.setInput(q)} />
             </motion.div>
           </div>
 
