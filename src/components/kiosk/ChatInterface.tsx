@@ -21,9 +21,13 @@ interface ChatInterfaceProps {
   voiceSupported: boolean;
 }
 
+export interface ChatInterfaceHandle {
+  setInput: (text: string) => void;
+}
+
 const TRANSLATE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/translate-malayalam`;
 
-const ChatInterface = ({
+const ChatInterface = forwardRef<ChatInterfaceHandle, ChatInterfaceProps>(({
   messages,
   isLoading,
   onSendMessage,
