@@ -38,7 +38,7 @@ const ChatInterface = forwardRef<ChatInterfaceHandle, ChatInterfaceProps>(({
   isSpeaking,
   onStopSpeaking,
   voiceSupported,
-}: ChatInterfaceProps) => {
+}: ChatInterfaceProps, ref) => {
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const [translatedMap, setTranslatedMap] = useState<Record<string, string>>({});
