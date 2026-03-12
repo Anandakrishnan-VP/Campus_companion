@@ -172,14 +172,15 @@ const Admin = () => {
       setCreatingProf(true);
       try {
         const { data, error: fnErr } = await supabase.functions.invoke("create-professor", { body: { faculty_id: newFac.id } });
+        setCreatingProf(false);
         if (fnErr) throw fnErr;
         if (data?.error) throw new Error(data.error);
         setProfCredentials({ id: data.professor_id, password: data.password, name: savedName });
         refetchFaculty();
       } catch (err: any) {
+        setCreatingProf(false);
         toast({ title: "Faculty added but account creation failed", description: err.message, variant: "destructive" });
       }
-      setCreatingProf(false);
     }
   };
 
@@ -671,7 +672,7 @@ const Admin = () => {
 
       {/* Professor Credentials Modal */}
       {(creatingProf || profCredentials) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm" onClick={() => { if (!creatingProf) { setProfCredentials(null); } }}>
           <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="glass-card p-6 w-full max-w-sm mx-4 text-center space-y-4">
             {creatingProf ? (
               <>
