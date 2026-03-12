@@ -45,6 +45,8 @@ const ChatInterface = forwardRef<ChatInterfaceHandle, ChatInterfaceProps>(({
   const [translatingId, setTranslatingId] = useState<string | null>(null);
   const [showTranslation, setShowTranslation] = useState<Record<string, boolean>>({});
 
+  useImperativeHandle(ref, () => ({ setInput }));
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages]);
