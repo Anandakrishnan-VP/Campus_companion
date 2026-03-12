@@ -197,7 +197,7 @@ const Index = () => {
           <img src={ncercLogo} alt="NCERC Logo" className="w-10 h-10 rounded-full object-cover" />
           <div>
             <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
-              NCERC <span className="text-primary glow-text">AI</span> Kiosk
+              NCERC <span className="text-primary glow-text">AI</span>
             </h1>
             <p className="text-xs text-white">Department of CSE(AI & ML)</p>
           </div>
