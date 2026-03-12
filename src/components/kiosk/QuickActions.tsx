@@ -25,7 +25,7 @@ const QuickActions = ({ onAction, onFillInput }: QuickActionsProps) => {
           transition={{ delay: i * 0.08 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          onClick={() => onAction(action.query)}
+          onClick={() => onFillInput ? onFillInput(action.query) : onAction(action.query)}
           className="glass-card-hover flex flex-col items-center gap-2 p-4 cursor-pointer group"
         >
           <action.icon className="w-6 h-6 text-primary transition-all group-hover:drop-shadow-[0_0_8px_hsl(var(--primary)/0.6)]" />
