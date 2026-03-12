@@ -5,11 +5,8 @@ import { Settings, MessageSquareWarning } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationPanel from "@/components/kiosk/NotificationPanel";
 const Avatar3D = lazy(() => import("@/components/kiosk/Avatar3D"));
-import ChatInterface, { type ChatMessage } from "@/components/kiosk/ChatInterface";
+import ChatInterface, { type ChatMessage, type ChatInterfaceHandle } from "@/components/kiosk/ChatInterface";
 import QuickActions from "@/components/kiosk/QuickActions";
-
-// Ref type for ChatInterface to set input externally
-
 import EmergencyButton from "@/components/kiosk/EmergencyButton";
 import { useSpeech } from "@/hooks/use-speech";
 
