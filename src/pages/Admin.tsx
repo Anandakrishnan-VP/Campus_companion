@@ -36,7 +36,7 @@ const Admin = () => {
   const { data: events, refetch: refetchEvents } = useRealtimeTable("events");
   const { data: locations, refetch: refetchLocations } = useRealtimeTable("locations");
   const { data: knowledgeBase, refetch: refetchKB } = useRealtimeTable("knowledge_base");
-  const { data: departments, refetch: refetchDepts } = useRealtimeTable("departments" as any);
+  const { data: departments, refetch: refetchDepts } = useRealtimeTable("departments");
 
   const [showFacultyForm, setShowFacultyForm] = useState(false);
   const [showEventForm, setShowEventForm] = useState(false);
@@ -97,13 +97,15 @@ const Admin = () => {
 
   const saveKBEntry = async () => {
     if (!kbTitle.trim() || !kbContent.trim()) { toast({ title: "Title and content required", variant: "destructive" }); return; }
-    await (supabase.from("knowledge_base") as any).insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim() });
+    const { error } = await supabase.from("knowledge_base").insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim() });
+    if (error) { toast({ title: "Error saving knowledge entry", description: error.message, variant: "destructive" }); return; }
     setShowBrainForm(false); setKbTitle(""); setKbContent(""); setKbCategory("General"); refetchKB();
     toast({ title: "Knowledge added to Brain" });
   };
 
   const deleteKBEntry = async (id: string) => {
-    await (supabase.from("knowledge_base") as any).delete().eq("id", id);
+    const { error } = await supabase.from("knowledge_base").delete().eq("id", id);
+    if (error) { toast({ title: "Error deleting entry", description: error.message, variant: "destructive" }); return; }
     refetchKB();
   };
 
@@ -225,18 +227,30 @@ const Admin = () => {
   // --- Event helpers ---
   const saveEvent = async () => {
     if (!eName.trim() || !eDate) { toast({ title: "Title and date required", variant: "destructive" }); return; }
-    await supabase.from("events").insert({ title: eName, description: eDesc, location: eVenue, event_date: eDate, start_time: eStart || null, end_time: eEnd || null });
+    const { error } = await supabase.from("events").insert({ title: eName, description: eDesc, location: eVenue, event_date: eDate, start_time: eStart || null, end_time: eEnd || null });
+    if (error) { toast({ title: "Error saving event", description: error.message, variant: "destructive" }); return; }
     setShowEventForm(false); setEName(""); setEDesc(""); setEVenue(""); setEDate(""); setEStart(""); setEEnd(""); refetchEvents();
+    toast({ title: "Event added" });
   };
-  const deleteEvent = async (id: string) => { await supabase.from("events").delete().eq("id", id); refetchEvents(); };
+  const deleteEvent = async (id: string) => {
+    const { error } = await supabase.from("events").delete().eq("id", id);
+    if (error) { toast({ title: "Error deleting event", description: error.message, variant: "destructive" }); return; }
+    refetchEvents();
+  };
 
   // --- Location helpers ---
   const saveLocation = async () => {
     if (!lName.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
-    await (supabase.from("locations") as any).insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections });
+    const { error } = await supabase.from("locations").insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections });
+    if (error) { toast({ title: "Error saving location", description: error.message, variant: "destructive" }); return; }
     setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); setLDirections(""); refetchLocations();
+    toast({ title: "Location added" });
   };
-  const deleteLocation = async (id: string) => { await supabase.from("locations").delete().eq("id", id); refetchLocations(); };
+  const deleteLocation = async (id: string) => {
+    const { error } = await supabase.from("locations").delete().eq("id", id);
+    if (error) { toast({ title: "Error deleting location", description: error.message, variant: "destructive" }); return; }
+    refetchLocations();
+  };
 
   // --- Department helpers ---
   const resetDeptForm = () => { setDeptName(""); setDeptHod(""); setDeptDesc(""); setEditingDeptId(null); setShowDeptForm(false); };
@@ -245,10 +259,12 @@ const Admin = () => {
     if (!deptName.trim()) { toast({ title: "Department name required", variant: "destructive" }); return; }
     const payload = { name: deptName.trim(), hod_name: deptHod.trim(), description: deptDesc.trim() };
     if (editingDeptId) {
-      await (supabase.from("departments") as any).update(payload).eq("id", editingDeptId);
+      const { error } = await supabase.from("departments").update(payload).eq("id", editingDeptId);
+      if (error) { toast({ title: "Error updating department", description: error.message, variant: "destructive" }); return; }
       toast({ title: "Department updated" });
     } else {
-      await (supabase.from("departments") as any).insert(payload);
+      const { error } = await supabase.from("departments").insert(payload);
+      if (error) { toast({ title: "Error adding department", description: error.message, variant: "destructive" }); return; }
       toast({ title: "Department added" });
     }
     resetDeptForm(); refetchDepts();
@@ -260,7 +276,8 @@ const Admin = () => {
   };
 
   const deleteDepartment = async (id: string) => {
-    await (supabase.from("departments") as any).delete().eq("id", id);
+    const { error } = await supabase.from("departments").delete().eq("id", id);
+    if (error) { toast({ title: "Error deleting department", description: error.message, variant: "destructive" }); return; }
     refetchDepts();
   };
 
