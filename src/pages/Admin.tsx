@@ -227,10 +227,16 @@ const Admin = () => {
   // --- Event helpers ---
   const saveEvent = async () => {
     if (!eName.trim() || !eDate) { toast({ title: "Title and date required", variant: "destructive" }); return; }
-    await supabase.from("events").insert({ title: eName, description: eDesc, location: eVenue, event_date: eDate, start_time: eStart || null, end_time: eEnd || null });
+    const { error } = await supabase.from("events").insert({ title: eName, description: eDesc, location: eVenue, event_date: eDate, start_time: eStart || null, end_time: eEnd || null });
+    if (error) { toast({ title: "Error saving event", description: error.message, variant: "destructive" }); return; }
     setShowEventForm(false); setEName(""); setEDesc(""); setEVenue(""); setEDate(""); setEStart(""); setEEnd(""); refetchEvents();
+    toast({ title: "Event added" });
   };
-  const deleteEvent = async (id: string) => { await supabase.from("events").delete().eq("id", id); refetchEvents(); };
+  const deleteEvent = async (id: string) => {
+    const { error } = await supabase.from("events").delete().eq("id", id);
+    if (error) { toast({ title: "Error deleting event", description: error.message, variant: "destructive" }); return; }
+    refetchEvents();
+  };
 
   // --- Location helpers ---
   const saveLocation = async () => {
