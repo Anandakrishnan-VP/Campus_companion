@@ -259,10 +259,12 @@ const Admin = () => {
     if (!deptName.trim()) { toast({ title: "Department name required", variant: "destructive" }); return; }
     const payload = { name: deptName.trim(), hod_name: deptHod.trim(), description: deptDesc.trim() };
     if (editingDeptId) {
-      await (supabase.from("departments") as any).update(payload).eq("id", editingDeptId);
+      const { error } = await supabase.from("departments").update(payload).eq("id", editingDeptId);
+      if (error) { toast({ title: "Error updating department", description: error.message, variant: "destructive" }); return; }
       toast({ title: "Department updated" });
     } else {
-      await (supabase.from("departments") as any).insert(payload);
+      const { error } = await supabase.from("departments").insert(payload);
+      if (error) { toast({ title: "Error adding department", description: error.message, variant: "destructive" }); return; }
       toast({ title: "Department added" });
     }
     resetDeptForm(); refetchDepts();
@@ -274,7 +276,8 @@ const Admin = () => {
   };
 
   const deleteDepartment = async (id: string) => {
-    await (supabase.from("departments") as any).delete().eq("id", id);
+    const { error } = await supabase.from("departments").delete().eq("id", id);
+    if (error) { toast({ title: "Error deleting department", description: error.message, variant: "destructive" }); return; }
     refetchDepts();
   };
 
