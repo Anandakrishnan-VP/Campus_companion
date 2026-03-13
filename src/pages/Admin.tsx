@@ -97,13 +97,15 @@ const Admin = () => {
 
   const saveKBEntry = async () => {
     if (!kbTitle.trim() || !kbContent.trim()) { toast({ title: "Title and content required", variant: "destructive" }); return; }
-    await (supabase.from("knowledge_base") as any).insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim() });
+    const { error } = await supabase.from("knowledge_base").insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim() });
+    if (error) { toast({ title: "Error saving knowledge entry", description: error.message, variant: "destructive" }); return; }
     setShowBrainForm(false); setKbTitle(""); setKbContent(""); setKbCategory("General"); refetchKB();
     toast({ title: "Knowledge added to Brain" });
   };
 
   const deleteKBEntry = async (id: string) => {
-    await (supabase.from("knowledge_base") as any).delete().eq("id", id);
+    const { error } = await supabase.from("knowledge_base").delete().eq("id", id);
+    if (error) { toast({ title: "Error deleting entry", description: error.message, variant: "destructive" }); return; }
     refetchKB();
   };
 
