@@ -241,10 +241,16 @@ const Admin = () => {
   // --- Location helpers ---
   const saveLocation = async () => {
     if (!lName.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
-    await (supabase.from("locations") as any).insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections });
+    const { error } = await supabase.from("locations").insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections });
+    if (error) { toast({ title: "Error saving location", description: error.message, variant: "destructive" }); return; }
     setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); setLDirections(""); refetchLocations();
+    toast({ title: "Location added" });
   };
-  const deleteLocation = async (id: string) => { await supabase.from("locations").delete().eq("id", id); refetchLocations(); };
+  const deleteLocation = async (id: string) => {
+    const { error } = await supabase.from("locations").delete().eq("id", id);
+    if (error) { toast({ title: "Error deleting location", description: error.message, variant: "destructive" }); return; }
+    refetchLocations();
+  };
 
   // --- Department helpers ---
   const resetDeptForm = () => { setDeptName(""); setDeptHod(""); setDeptDesc(""); setEditingDeptId(null); setShowDeptForm(false); };
