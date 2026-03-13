@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export function useRealtimeTable(table: "faculty" | "timetable" | "events" | "locations" | "attendance" | "notifications" | "knowledge_base", filter?: { column: string; value: string }) {
+export function useRealtimeTable(table: "faculty" | "timetable" | "events" | "locations" | "attendance" | "notifications" | "knowledge_base" | "departments", filter?: { column: string; value: string }) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
