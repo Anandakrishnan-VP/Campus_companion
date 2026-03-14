@@ -16,6 +16,7 @@ interface CsvImporterProps {
   fields: CsvFieldConfig[];
   existingNames: string[];
   onComplete: () => void;
+  onImported?: (insertedRows: any[]) => void;
   onClose: () => void;
 }
 
