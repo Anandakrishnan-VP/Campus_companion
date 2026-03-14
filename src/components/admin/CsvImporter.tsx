@@ -16,6 +16,7 @@ interface CsvImporterProps {
   fields: CsvFieldConfig[];
   existingNames: string[];
   onComplete: () => void;
+  onImported?: (insertedRows: any[]) => void;
   onClose: () => void;
 }
 
@@ -66,7 +67,7 @@ interface ParsedRow {
   warning?: string;
 }
 
-const CsvImporter = ({ table, fields, existingNames, onComplete, onClose }: CsvImporterProps) => {
+const CsvImporter = ({ table, fields, existingNames, onComplete, onImported, onClose }: CsvImporterProps) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [importing, setImporting] = useState(false);
@@ -135,7 +136,7 @@ const CsvImporter = ({ table, fields, existingNames, onComplete, onClose }: CsvI
     }
 
     setImporting(true);
-    const { error } = await supabase.from(table).insert(toInsert as any);
+    const { data: insertedData, error } = await supabase.from(table).insert(toInsert as any).select();
     setImporting(false);
 
     if (error) {
@@ -146,6 +147,7 @@ const CsvImporter = ({ table, fields, existingNames, onComplete, onClose }: CsvI
     const skipped = rows.length - validRows.length;
     toast({ title: `${validRows.length} imported${skipped > 0 ? `, ${skipped} skipped` : ""}` });
     onComplete();
+    if (onImported && insertedData) onImported(insertedData);
     onClose();
   };
 

@@ -87,6 +87,8 @@ const Admin = () => {
   // Professor credentials modal
   const [creatingProf, setCreatingProf] = useState(false);
   const [profCredentials, setProfCredentials] = useState<{ id: string; password: string; name: string } | null>(null);
+  const [bulkCredentials, setBulkCredentials] = useState<{ id: string; password: string; name: string }[]>([]);
+  const [bulkCreatingCount, setBulkCreatingCount] = useState(0);
   const [copied, setCopied] = useState(false);
 
   // Brain (knowledge base) form
@@ -285,9 +287,36 @@ const Admin = () => {
   };
 
   const copyCredentials = () => {
-    if (!profCredentials) return;
-    navigator.clipboard.writeText(`ID: ${profCredentials.id}\nPassword: ${profCredentials.password}`);
+    if (bulkCredentials.length > 0) {
+      const text = bulkCredentials.map(c => `${c.name}: ID ${c.id}, Password ${c.password}`).join("\n");
+      navigator.clipboard.writeText(text);
+    } else if (profCredentials) {
+      navigator.clipboard.writeText(`ID: ${profCredentials.id}\nPassword: ${profCredentials.password}`);
+    }
     setCopied(true); setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleFacultyCsvImported = async (insertedRows: any[]) => {
+    if (!insertedRows || insertedRows.length === 0) return;
+    setBulkCreatingCount(insertedRows.length);
+    const creds: { id: string; password: string; name: string }[] = [];
+    for (const row of insertedRows) {
+      try {
+        const { data, error } = await supabase.functions.invoke("create-professor", { body: { faculty_id: row.id } });
+        if (!error && data && !data.error) {
+          creds.push({ id: data.professor_id, password: data.password, name: row.name });
+        }
+      } catch (err) {
+        console.error("Failed to create professor for", row.name, err);
+      }
+    }
+    setBulkCreatingCount(0);
+    refetchFaculty();
+    if (creds.length > 0) {
+      setBulkCredentials(creds);
+    } else {
+      toast({ title: "Faculty imported but account creation failed for all", variant: "destructive" });
+    }
   };
 
   const inputCls = "w-full bg-muted/50 border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 font-body";
@@ -535,6 +564,7 @@ const Admin = () => {
                     fields={FACULTY_CSV_FIELDS}
                     existingNames={faculty.map((f: any) => f.name)}
                     onComplete={() => { refetchFaculty(); }}
+                    onImported={handleFacultyCsvImported}
                     onClose={() => setShowCsvFaculty(false)}
                   />
                 )}
@@ -727,15 +757,43 @@ const Admin = () => {
       </div>
 
       {/* Professor Credentials Modal */}
-      {(creatingProf || profCredentials) && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm" onClick={() => { if (!creatingProf) { setProfCredentials(null); } }}>
-          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="glass-card p-6 w-full max-w-sm mx-4 text-center space-y-4">
-            {creatingProf ? (
+      {(creatingProf || profCredentials || bulkCreatingCount > 0 || bulkCredentials.length > 0) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm" onClick={() => { if (!creatingProf && bulkCreatingCount === 0) { setProfCredentials(null); setBulkCredentials([]); } }}>
+          <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="glass-card p-6 w-full max-w-md mx-4 text-center space-y-4" onClick={e => e.stopPropagation()}>
+            {(creatingProf || bulkCreatingCount > 0) ? (
               <>
                 <div className="w-10 h-10 mx-auto rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
                   <UserPlus className="w-5 h-5 text-primary" />
                 </div>
-                <p className="text-sm text-muted-foreground font-display">Creating professor account...</p>
+                <p className="text-sm text-muted-foreground font-display">
+                  {bulkCreatingCount > 0 ? `Creating ${bulkCreatingCount} professor accounts...` : "Creating professor account..."}
+                </p>
+              </>
+            ) : bulkCredentials.length > 0 ? (
+              <>
+                <div className="w-12 h-12 mx-auto rounded-full bg-green-500/20 flex items-center justify-center">
+                  <CheckCheck className="w-6 h-6 text-green-400" />
+                </div>
+                <h2 className="text-lg font-display font-bold text-foreground">{bulkCredentials.length} Professor Accounts Created!</h2>
+                <p className="text-xs text-muted-foreground">Share these credentials with each professor</p>
+                <div className="bg-muted/50 rounded-xl p-3 space-y-2 text-left max-h-60 overflow-y-auto">
+                  {bulkCredentials.map((c, i) => (
+                    <div key={i} className={`${i > 0 ? "border-t border-border/30 pt-2" : ""}`}>
+                      <p className="text-xs font-display font-semibold text-foreground">{c.name}</p>
+                      <div className="flex gap-4 text-xs text-muted-foreground">
+                        <span>ID: <strong className="font-mono text-foreground">{c.id}</strong></span>
+                        <span>Pass: <strong className="font-mono text-foreground">{c.password}</strong></span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <button onClick={copyCredentials} className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-secondary text-secondary-foreground text-sm font-display font-medium hover:bg-secondary/80 transition-colors">
+                    {copied ? <CheckCheck className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                    {copied ? "Copied!" : "Copy All"}
+                  </button>
+                  <button onClick={() => setBulkCredentials([])} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-display font-semibold">Done</button>
+                </div>
               </>
             ) : profCredentials ? (
               <>
