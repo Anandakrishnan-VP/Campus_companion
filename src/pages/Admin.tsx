@@ -520,7 +520,25 @@ const Admin = () => {
                   </div>
                 );
               })}
-              {!showFacultyForm && <AddButton label="Add Faculty" onClick={() => setShowFacultyForm(true)} />}
+              {!showFacultyForm && !showCsvFaculty && (
+                <div className="flex gap-2">
+                  <AddButton label="Add Faculty" onClick={() => setShowFacultyForm(true)} />
+                  <button onClick={() => setShowCsvFaculty(true)} className="w-full py-3 rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center gap-2 font-display">
+                    <Upload className="w-4 h-4" />Import CSV
+                  </button>
+                </div>
+              )}
+              <AnimatePresence>
+                {showCsvFaculty && (
+                  <CsvImporter
+                    table="faculty"
+                    fields={FACULTY_CSV_FIELDS}
+                    existingNames={faculty.map((f: any) => f.name)}
+                    onComplete={() => { refetchFaculty(); }}
+                    onClose={() => setShowCsvFaculty(false)}
+                  />
+                )}
+              </AnimatePresence>
             </div>
           </Section>
         )}
