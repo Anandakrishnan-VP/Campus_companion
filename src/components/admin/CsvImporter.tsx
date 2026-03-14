@@ -67,7 +67,7 @@ interface ParsedRow {
   warning?: string;
 }
 
-const CsvImporter = ({ table, fields, existingNames, onComplete, onClose }: CsvImporterProps) => {
+const CsvImporter = ({ table, fields, existingNames, onComplete, onImported, onClose }: CsvImporterProps) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [importing, setImporting] = useState(false);
