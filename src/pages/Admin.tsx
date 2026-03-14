@@ -287,9 +287,36 @@ const Admin = () => {
   };
 
   const copyCredentials = () => {
-    if (!profCredentials) return;
-    navigator.clipboard.writeText(`ID: ${profCredentials.id}\nPassword: ${profCredentials.password}`);
+    if (bulkCredentials.length > 0) {
+      const text = bulkCredentials.map(c => `${c.name}: ID ${c.id}, Password ${c.password}`).join("\n");
+      navigator.clipboard.writeText(text);
+    } else if (profCredentials) {
+      navigator.clipboard.writeText(`ID: ${profCredentials.id}\nPassword: ${profCredentials.password}`);
+    }
     setCopied(true); setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleFacultyCsvImported = async (insertedRows: any[]) => {
+    if (!insertedRows || insertedRows.length === 0) return;
+    setBulkCreatingCount(insertedRows.length);
+    const creds: { id: string; password: string; name: string }[] = [];
+    for (const row of insertedRows) {
+      try {
+        const { data, error } = await supabase.functions.invoke("create-professor", { body: { faculty_id: row.id } });
+        if (!error && data && !data.error) {
+          creds.push({ id: data.professor_id, password: data.password, name: row.name });
+        }
+      } catch (err) {
+        console.error("Failed to create professor for", row.name, err);
+      }
+    }
+    setBulkCreatingCount(0);
+    refetchFaculty();
+    if (creds.length > 0) {
+      setBulkCredentials(creds);
+    } else {
+      toast({ title: "Faculty imported but account creation failed for all", variant: "destructive" });
+    }
   };
 
   const inputCls = "w-full bg-muted/50 border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 font-body";
