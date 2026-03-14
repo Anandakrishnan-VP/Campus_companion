@@ -564,6 +564,7 @@ const Admin = () => {
                     fields={FACULTY_CSV_FIELDS}
                     existingNames={faculty.map((f: any) => f.name)}
                     onComplete={() => { refetchFaculty(); }}
+                    onImported={handleFacultyCsvImported}
                     onClose={() => setShowCsvFaculty(false)}
                   />
                 )}
