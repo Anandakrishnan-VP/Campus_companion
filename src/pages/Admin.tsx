@@ -43,6 +43,8 @@ const Admin = () => {
   const [showEventForm, setShowEventForm] = useState(false);
   const [showLocationForm, setShowLocationForm] = useState(false);
   const [showBrainForm, setShowBrainForm] = useState(false);
+  const [showCsvFaculty, setShowCsvFaculty] = useState(false);
+  const [showCsvLocations, setShowCsvLocations] = useState(false);
   const [showDeptForm, setShowDeptForm] = useState(false);
   const [deptName, setDeptName] = useState("");
   const [deptHod, setDeptHod] = useState("");
