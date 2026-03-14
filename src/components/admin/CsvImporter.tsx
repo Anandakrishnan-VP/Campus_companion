@@ -136,7 +136,7 @@ const CsvImporter = ({ table, fields, existingNames, onComplete, onImported, onC
     }
 
     setImporting(true);
-    const { error } = await supabase.from(table).insert(toInsert as any);
+    const { data: insertedData, error } = await supabase.from(table).insert(toInsert as any).select();
     setImporting(false);
 
     if (error) {
@@ -147,6 +147,7 @@ const CsvImporter = ({ table, fields, existingNames, onComplete, onImported, onC
     const skipped = rows.length - validRows.length;
     toast({ title: `${validRows.length} imported${skipped > 0 ? `, ${skipped} skipped` : ""}` });
     onComplete();
+    if (onImported && insertedData) onImported(insertedData);
     onClose();
   };
 
