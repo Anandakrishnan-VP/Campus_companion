@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save, Brain, MessageSquare, Building2 } from "lucide-react";
+import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save, Brain, MessageSquare, Building2, Upload } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationManager from "@/components/NotificationManager";
 import { useAuth } from "@/hooks/use-auth";
@@ -8,6 +8,7 @@ import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import IssuesManager from "@/components/admin/IssuesManager";
+import CsvImporter, { FACULTY_CSV_FIELDS, LOCATION_CSV_FIELDS } from "@/components/admin/CsvImporter";
 
 type Tab = "faculty" | "events" | "locations" | "departments" | "brain" | "issues" | "notifications";
 
@@ -42,6 +43,8 @@ const Admin = () => {
   const [showEventForm, setShowEventForm] = useState(false);
   const [showLocationForm, setShowLocationForm] = useState(false);
   const [showBrainForm, setShowBrainForm] = useState(false);
+  const [showCsvFaculty, setShowCsvFaculty] = useState(false);
+  const [showCsvLocations, setShowCsvLocations] = useState(false);
   const [showDeptForm, setShowDeptForm] = useState(false);
   const [deptName, setDeptName] = useState("");
   const [deptHod, setDeptHod] = useState("");
@@ -517,7 +520,25 @@ const Admin = () => {
                   </div>
                 );
               })}
-              {!showFacultyForm && <AddButton label="Add Faculty" onClick={() => setShowFacultyForm(true)} />}
+              {!showFacultyForm && !showCsvFaculty && (
+                <div className="flex gap-2">
+                  <AddButton label="Add Faculty" onClick={() => setShowFacultyForm(true)} />
+                  <button onClick={() => setShowCsvFaculty(true)} className="w-full py-3 rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center gap-2 font-display">
+                    <Upload className="w-4 h-4" />Import CSV
+                  </button>
+                </div>
+              )}
+              <AnimatePresence>
+                {showCsvFaculty && (
+                  <CsvImporter
+                    table="faculty"
+                    fields={FACULTY_CSV_FIELDS}
+                    existingNames={faculty.map((f: any) => f.name)}
+                    onComplete={() => { refetchFaculty(); }}
+                    onClose={() => setShowCsvFaculty(false)}
+                  />
+                )}
+              </AnimatePresence>
             </div>
           </Section>
         )}
@@ -593,7 +614,25 @@ const Admin = () => {
                   <button onClick={() => deleteLocation(l.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))}
-              {!showLocationForm && <AddButton label="Add Location" onClick={() => setShowLocationForm(true)} />}
+              {!showLocationForm && !showCsvLocations && (
+                <div className="flex gap-2">
+                  <AddButton label="Add Location" onClick={() => setShowLocationForm(true)} />
+                  <button onClick={() => setShowCsvLocations(true)} className="w-full py-3 rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center gap-2 font-display">
+                    <Upload className="w-4 h-4" />Import CSV
+                  </button>
+                </div>
+              )}
+              <AnimatePresence>
+                {showCsvLocations && (
+                  <CsvImporter
+                    table="locations"
+                    fields={LOCATION_CSV_FIELDS}
+                    existingNames={locations.map((l: any) => l.name)}
+                    onComplete={() => { refetchLocations(); }}
+                    onClose={() => setShowCsvLocations(false)}
+                  />
+                )}
+              </AnimatePresence>
             </div>
           </Section>
         )}
