@@ -614,7 +614,25 @@ const Admin = () => {
                   <button onClick={() => deleteLocation(l.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))}
-              {!showLocationForm && <AddButton label="Add Location" onClick={() => setShowLocationForm(true)} />}
+              {!showLocationForm && !showCsvLocations && (
+                <div className="flex gap-2">
+                  <AddButton label="Add Location" onClick={() => setShowLocationForm(true)} />
+                  <button onClick={() => setShowCsvLocations(true)} className="w-full py-3 rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center gap-2 font-display">
+                    <Upload className="w-4 h-4" />Import CSV
+                  </button>
+                </div>
+              )}
+              <AnimatePresence>
+                {showCsvLocations && (
+                  <CsvImporter
+                    table="locations"
+                    fields={LOCATION_CSV_FIELDS}
+                    existingNames={locations.map((l: any) => l.name)}
+                    onComplete={() => { refetchLocations(); }}
+                    onClose={() => setShowCsvLocations(false)}
+                  />
+                )}
+              </AnimatePresence>
             </div>
           </Section>
         )}
