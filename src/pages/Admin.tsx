@@ -87,6 +87,8 @@ const Admin = () => {
   // Professor credentials modal
   const [creatingProf, setCreatingProf] = useState(false);
   const [profCredentials, setProfCredentials] = useState<{ id: string; password: string; name: string } | null>(null);
+  const [bulkCredentials, setBulkCredentials] = useState<{ id: string; password: string; name: string }[]>([]);
+  const [bulkCreatingCount, setBulkCreatingCount] = useState(0);
   const [copied, setCopied] = useState(false);
 
   // Brain (knowledge base) form
