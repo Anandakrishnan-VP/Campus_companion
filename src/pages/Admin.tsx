@@ -115,6 +115,13 @@ const Admin = () => {
     refetchKB();
   };
 
+  // Emergency form
+  const [showEmergencyForm, setShowEmergencyForm] = useState(false);
+  const [emLabel, setEmLabel] = useState("");
+  const [emValue, setEmValue] = useState("");
+  const [emType, setEmType] = useState("phone");
+  const [editingEmId, setEditingEmId] = useState<string | null>(null);
+
   const tabs: { key: Tab; label: string; icon: typeof Users }[] = [
     { key: "faculty", label: "Faculty & Schedule", icon: Users },
     { key: "events", label: "Events", icon: Calendar },
@@ -123,6 +130,7 @@ const Admin = () => {
     { key: "brain", label: "Brain", icon: Brain },
     { key: "issues", label: "Issues", icon: MessageSquare },
     { key: "notifications", label: "Notifications", icon: Bell },
+    { key: "emergency", label: "Emergency", icon: AlertTriangle },
   ];
 
   // --- Faculty + Schedule helpers ---
