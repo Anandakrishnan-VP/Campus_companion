@@ -763,6 +763,71 @@ const Admin = () => {
         {activeTab === "notifications" && (
           <NotificationManager user={user} displayName="Admin" />
         )}
+
+        {/* ===== EMERGENCY TAB ===== */}
+        {activeTab === "emergency" && (
+          <Section title="Emergency Contacts">
+            <div className="space-y-3">
+              {emergencyContacts.sort((a: any, b: any) => a.sort_order - b.sort_order).map((c: any) => (
+                <motion.div key={c.id} layout className="glass-card p-4 flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground font-display">{c.type === "phone" ? "📞 Phone" : "ℹ️ Info"}</span>
+                      <span className="text-xs text-muted-foreground font-display">Order: {c.sort_order}</span>
+                    </div>
+                    <p className="font-display font-bold text-foreground">{c.label}</p>
+                    <p className="text-sm text-muted-foreground">{c.value}</p>
+                  </div>
+                  <div className="flex gap-2 ml-3">
+                    <button onClick={() => {
+                      setEditingEmId(c.id); setEmLabel(c.label); setEmValue(c.value); setEmType(c.type); setShowEmergencyForm(true);
+                    }} className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-primary transition-colors">
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button onClick={async () => {
+                      await (supabase.from("emergency_contacts") as any).delete().eq("id", c.id);
+                      refetchEmergency(); toast({ title: "Contact deleted" });
+                    }} className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-destructive transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+
+              <AnimatePresence>
+                {showEmergencyForm && (
+                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="glass-card p-4 space-y-3 overflow-hidden">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-display font-bold text-foreground text-sm">{editingEmId ? "Edit Contact" : "Add Emergency Contact"}</h3>
+                      <button onClick={() => { setShowEmergencyForm(false); setEditingEmId(null); setEmLabel(""); setEmValue(""); setEmType("phone"); }} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
+                    </div>
+                    <input value={emLabel} onChange={e => setEmLabel(e.target.value)} placeholder="Label (e.g. Campus Security)" className="w-full bg-secondary/50 border border-border/30 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 font-body" />
+                    <input value={emValue} onChange={e => setEmValue(e.target.value)} placeholder="Phone number or instructions" className="w-full bg-secondary/50 border border-border/30 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary/50 font-body" />
+                    <div className="flex gap-2">
+                      <button onClick={() => setEmType("phone")} className={`flex-1 py-2 rounded-xl text-xs font-display font-medium border transition-all ${emType === "phone" ? "bg-primary/15 text-primary border-primary/30" : "bg-secondary/50 text-muted-foreground border-border/20"}`}>📞 Phone</button>
+                      <button onClick={() => setEmType("info")} className={`flex-1 py-2 rounded-xl text-xs font-display font-medium border transition-all ${emType === "info" ? "bg-primary/15 text-primary border-primary/30" : "bg-secondary/50 text-muted-foreground border-border/20"}`}>ℹ️ Info/Text</button>
+                    </div>
+                    <button onClick={async () => {
+                      if (!emLabel.trim() || !emValue.trim()) { toast({ title: "Label and value required", variant: "destructive" }); return; }
+                      if (editingEmId) {
+                        await (supabase.from("emergency_contacts") as any).update({ label: emLabel.trim(), value: emValue.trim(), type: emType }).eq("id", editingEmId);
+                      } else {
+                        const maxOrder = emergencyContacts.reduce((m: number, c: any) => Math.max(m, c.sort_order || 0), -1);
+                        await (supabase.from("emergency_contacts") as any).insert({ label: emLabel.trim(), value: emValue.trim(), type: emType, sort_order: maxOrder + 1 });
+                      }
+                      setShowEmergencyForm(false); setEditingEmId(null); setEmLabel(""); setEmValue(""); setEmType("phone");
+                      refetchEmergency(); toast({ title: editingEmId ? "Contact updated" : "Contact added" });
+                    }} className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-display font-semibold">
+                      <Save className="w-4 h-4 inline mr-2" />{editingEmId ? "Update" : "Add Contact"}
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {!showEmergencyForm && <AddButton label="Add Emergency Contact" onClick={() => setShowEmergencyForm(true)} />}
+            </div>
+          </Section>
+        )}
       </div>
 
       {/* Professor Credentials Modal */}
