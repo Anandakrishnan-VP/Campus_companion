@@ -1,9 +1,27 @@
 import { motion } from "framer-motion";
-import { AlertTriangle } from "lucide-react";
-import { useState } from "react";
+import { AlertTriangle, Phone, Info } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+
+interface EmergencyContact {
+  id: string;
+  label: string;
+  value: string;
+  type: string;
+  sort_order: number;
+}
 
 const EmergencyButton = () => {
   const [showEmergency, setShowEmergency] = useState(false);
+  const [contacts, setContacts] = useState<EmergencyContact[]>([]);
+
+  useEffect(() => {
+    const fetch = async () => {
+      const { data } = await (supabase.from("emergency_contacts") as any).select("*").order("sort_order", { ascending: true });
+      if (data) setContacts(data);
+    };
+    fetch();
+  }, [showEmergency]);
 
   return (
     <>
@@ -32,22 +50,20 @@ const EmergencyButton = () => {
             <h2 className="text-2xl font-display font-bold text-destructive">Emergency Contacts</h2>
 
             <div className="space-y-4 text-left">
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                <p className="text-sm text-muted-foreground">Campus Security</p>
-                <p className="text-lg font-bold text-foreground">📞 +91-XXX-XXX-1234</p>
-              </div>
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                <p className="text-sm text-muted-foreground">Medical Emergency</p>
-                <p className="text-lg font-bold text-foreground">📞 +91-XXX-XXX-5678</p>
-              </div>
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                <p className="text-sm text-muted-foreground">Fire Emergency</p>
-                <p className="text-lg font-bold text-foreground">📞 101</p>
-              </div>
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
-                <p className="text-sm text-muted-foreground">Evacuation</p>
-                <p className="text-foreground text-sm">Proceed to the nearest exit. Assembly point: Main Ground.</p>
-              </div>
+              {contacts.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center">No emergency contacts configured.</p>
+              ) : (
+                contacts.map((contact) => (
+                  <div key={contact.id} className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                    <p className="text-sm text-muted-foreground">{contact.label}</p>
+                    {contact.type === "phone" ? (
+                      <p className="text-lg font-bold text-foreground">📞 {contact.value}</p>
+                    ) : (
+                      <p className="text-foreground text-sm">{contact.value}</p>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
 
             <button
