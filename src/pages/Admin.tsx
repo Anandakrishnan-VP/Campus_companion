@@ -97,6 +97,13 @@ const Admin = () => {
   const [kbTitle, setKbTitle] = useState("");
   const [kbContent, setKbContent] = useState("");
 
+  // Emergency form
+  const [showEmergencyForm, setShowEmergencyForm] = useState(false);
+  const [emLabel, setEmLabel] = useState("");
+  const [emValue, setEmValue] = useState("");
+  const [emType, setEmType] = useState("phone");
+  const [editingEmId, setEditingEmId] = useState<string | null>(null);
+
   const BRAIN_CATEGORIES = ["General", "Admissions", "Courses", "Facilities", "History", "Placements", "Hostel", "Transport", "Fees", "Clubs & Activities", "Rules & Policies", "Other"];
 
   if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground font-display">Loading...</p></div>;
@@ -115,12 +122,6 @@ const Admin = () => {
     refetchKB();
   };
 
-  // Emergency form
-  const [showEmergencyForm, setShowEmergencyForm] = useState(false);
-  const [emLabel, setEmLabel] = useState("");
-  const [emValue, setEmValue] = useState("");
-  const [emType, setEmType] = useState("phone");
-  const [editingEmId, setEditingEmId] = useState<string | null>(null);
 
   const tabs: { key: Tab; label: string; icon: typeof Users }[] = [
     { key: "faculty", label: "Faculty & Schedule", icon: Users },
