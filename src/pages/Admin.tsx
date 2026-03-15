@@ -10,7 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import IssuesManager from "@/components/admin/IssuesManager";
 import CsvImporter, { FACULTY_CSV_FIELDS, LOCATION_CSV_FIELDS } from "@/components/admin/CsvImporter";
 
-type Tab = "faculty" | "events" | "locations" | "departments" | "brain" | "issues" | "notifications";
+type Tab = "faculty" | "events" | "locations" | "departments" | "brain" | "issues" | "notifications" | "emergency";
 
 interface ScheduleSlot {
   day_of_week: string;
