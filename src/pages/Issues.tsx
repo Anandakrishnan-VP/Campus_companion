@@ -375,7 +375,7 @@ const Issues = () => {
               initial={{ opacity: 0, y: 40, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 40, scale: 0.95 }}
-              className="fixed bottom-0 left-0 right-0 z-50 sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-md sm:w-full"
+              className="fixed bottom-0 left-0 right-0 z-50 sm:bottom-auto sm:top-1/2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:max-w-md sm:w-[calc(100%-2rem)] sm:mx-auto"
             >
               <div className="bg-card rounded-t-3xl sm:rounded-3xl p-6 space-y-5 mx-auto border border-border/30 shadow-[0_-8px_40px_hsl(var(--accent)/0.1)]">
                 <div className="flex items-center justify-between">
