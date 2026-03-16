@@ -137,15 +137,15 @@ const Professor = () => {
               }`}>
                 Currently: {todayStatus ? todayStatus.charAt(0).toUpperCase() + todayStatus.slice(1) : "Unmarked"}
               </div>
-              <div className="flex gap-3 justify-center">
+              <div className="flex gap-3 justify-center flex-wrap">
                 <button onClick={() => markAttendance("present")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "present" ? "bg-green-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-green-500/20"}`}>
                   <Check className="w-4 h-4 inline mr-1" />Present
                 </button>
-                <button onClick={() => markAttendance("absent")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "absent" ? "bg-destructive text-destructive-foreground" : "bg-secondary text-secondary-foreground hover:bg-destructive/20"}`}>
-                  <X className="w-4 h-4 inline mr-1" />Absent
-                </button>
                 <button onClick={() => markAttendance("leave")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "leave" ? "bg-yellow-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-yellow-500/20"}`}>
                   On Leave
+                </button>
+                <button onClick={() => markAttendance("schedule_changed")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "schedule_changed" ? "bg-orange-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-orange-500/20"}`}>
+                  <Clock className="w-4 h-4 inline mr-1" />Schedule Changed
                 </button>
               </div>
             </div>
