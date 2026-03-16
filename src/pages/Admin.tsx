@@ -462,7 +462,7 @@ const Admin = () => {
 
                 <div className="flex gap-2 justify-end pt-2">
                   <button onClick={resetFacultyForm} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
-                  <button onClick={saveFaculty} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">
+                  <button onClick={saveFaculty} disabled={submitting} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold disabled:opacity-50">
                     {editingId ? "Update Info" : `Add Faculty${scheduleSlots.length > 0 ? ` with ${scheduleSlots.length} slot${scheduleSlots.length > 1 ? "s" : ""}` : ""}`}
                   </button>
                 </div>
