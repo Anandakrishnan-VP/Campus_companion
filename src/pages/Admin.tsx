@@ -285,18 +285,22 @@ const Admin = () => {
   const resetDeptForm = () => { setDeptName(""); setDeptHod(""); setDeptDesc(""); setEditingDeptId(null); setShowDeptForm(false); };
 
   const saveDepartment = async () => {
+    if (submitting) return;
     if (!deptName.trim()) { toast({ title: "Department name required", variant: "destructive" }); return; }
-    const payload = { name: deptName.trim(), hod_name: deptHod.trim(), description: deptDesc.trim() };
-    if (editingDeptId) {
-      const { error } = await supabase.from("departments").update(payload).eq("id", editingDeptId);
-      if (error) { toast({ title: "Error updating department", description: error.message, variant: "destructive" }); return; }
-      toast({ title: "Department updated" });
-    } else {
-      const { error } = await supabase.from("departments").insert(payload);
-      if (error) { toast({ title: "Error adding department", description: error.message, variant: "destructive" }); return; }
-      toast({ title: "Department added" });
-    }
-    resetDeptForm(); refetchDepts();
+    setSubmitting(true);
+    try {
+      const payload = { name: deptName.trim(), hod_name: deptHod.trim(), description: deptDesc.trim() };
+      if (editingDeptId) {
+        const { error } = await supabase.from("departments").update(payload).eq("id", editingDeptId);
+        if (error) { toast({ title: "Error updating department", description: error.message, variant: "destructive" }); return; }
+        toast({ title: "Department updated" });
+      } else {
+        const { error } = await supabase.from("departments").insert(payload);
+        if (error) { toast({ title: "Error adding department", description: error.message, variant: "destructive" }); return; }
+        toast({ title: "Department added" });
+      }
+      resetDeptForm(); refetchDepts();
+    } finally { setSubmitting(false); }
   };
 
   const editDepartment = (d: any) => {
