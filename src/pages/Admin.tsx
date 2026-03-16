@@ -168,7 +168,10 @@ const Admin = () => {
   };
 
   const saveFaculty = async () => {
+    if (submitting) return;
     if (!fName.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
+    setSubmitting(true);
+    try {
     const payload = { name: fName.trim(), aliases: fAliases, department: fDept, office_location: fOffice, phone: fPhone };
     if (editingId) {
       await supabase.from("faculty").update(payload).eq("id", editingId);
