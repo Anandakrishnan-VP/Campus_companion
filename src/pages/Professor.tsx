@@ -48,7 +48,7 @@ const Professor = () => {
     </div>
   );
 
-  const markAttendance = async (status: "present" | "absent" | "leave") => {
+  const markAttendance = async (status: "present" | "leave" | "schedule_changed") => {
     const existing = myAttendance.find((a: any) => a.date === today);
     if (existing) {
       await supabase.from("attendance").update({ status }).eq("id", existing.id);
@@ -57,7 +57,7 @@ const Professor = () => {
     }
     await supabase.from("faculty").update({ is_present: status === "present" }).eq("id", facultyId);
     setTodayStatus(status);
-    toast({ title: `Marked as ${status}` });
+    toast({ title: status === "schedule_changed" ? "Marked as Schedule Changed" : `Marked as ${status}` });
   };
 
   const toggleCancel = async (id: string, current: boolean) => {
@@ -131,21 +131,21 @@ const Professor = () => {
               <p className="text-sm text-muted-foreground mb-4">{new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
               <div className={`inline-block px-4 py-2 rounded-full text-sm font-display font-semibold mb-4 ${
                 todayStatus === "present" ? "bg-green-500/20 text-green-400" :
-                todayStatus === "absent" ? "bg-destructive/20 text-destructive" :
                 todayStatus === "leave" ? "bg-yellow-500/20 text-yellow-400" :
+                todayStatus === "schedule_changed" ? "bg-orange-500/20 text-orange-400" :
                 "bg-muted/50 text-muted-foreground"
               }`}>
-                Currently: {todayStatus ? todayStatus.charAt(0).toUpperCase() + todayStatus.slice(1) : "Unmarked"}
+                Currently: {todayStatus === "schedule_changed" ? "Schedule Changed" : todayStatus ? todayStatus.charAt(0).toUpperCase() + todayStatus.slice(1) : "Unmarked"}
               </div>
-              <div className="flex gap-3 justify-center">
+              <div className="flex gap-3 justify-center flex-wrap">
                 <button onClick={() => markAttendance("present")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "present" ? "bg-green-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-green-500/20"}`}>
                   <Check className="w-4 h-4 inline mr-1" />Present
                 </button>
-                <button onClick={() => markAttendance("absent")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "absent" ? "bg-destructive text-destructive-foreground" : "bg-secondary text-secondary-foreground hover:bg-destructive/20"}`}>
-                  <X className="w-4 h-4 inline mr-1" />Absent
-                </button>
                 <button onClick={() => markAttendance("leave")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "leave" ? "bg-yellow-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-yellow-500/20"}`}>
                   On Leave
+                </button>
+                <button onClick={() => markAttendance("schedule_changed")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "schedule_changed" ? "bg-orange-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-orange-500/20"}`}>
+                  <Clock className="w-4 h-4 inline mr-1" />Schedule Changed
                 </button>
               </div>
             </div>
@@ -156,8 +156,8 @@ const Professor = () => {
                 {myAttendance.slice(0, 7).map((a: any) => (
                   <div key={a.id} className="glass-card px-4 py-3 flex items-center justify-between">
                     <span className="text-sm text-foreground font-body">{a.date}</span>
-                    <span className={`text-xs font-display font-semibold px-3 py-1 rounded-full ${a.status === "present" ? "bg-green-500/20 text-green-400" : a.status === "absent" ? "bg-destructive/20 text-destructive" : "bg-yellow-500/20 text-yellow-400"}`}>
-                      {a.status}
+                    <span className={`text-xs font-display font-semibold px-3 py-1 rounded-full ${a.status === "present" ? "bg-green-500/20 text-green-400" : a.status === "schedule_changed" ? "bg-orange-500/20 text-orange-400" : "bg-yellow-500/20 text-yellow-400"}`}>
+                      {a.status === "schedule_changed" ? "Schedule Changed" : a.status}
                     </span>
                   </div>
                 ))}
