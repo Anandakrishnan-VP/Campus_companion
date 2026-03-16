@@ -22,6 +22,23 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,woff2}"],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/mxiqermqukcojanwzmlp\.supabase\.co\/rest\/v1\/(faculty|locations|timetable|departments|events|emergency_contacts)/,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "supabase-api-cache",
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60, // 1 hour
+              },
+              networkTimeoutSeconds: 5,
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+        ],
       },
       manifest: {
         name: "NCERC AI Kiosk",
