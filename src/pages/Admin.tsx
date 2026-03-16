@@ -104,17 +104,22 @@ const Admin = () => {
   const [emType, setEmType] = useState("phone");
   const [editingEmId, setEditingEmId] = useState<string | null>(null);
   const [emSubmitting, setEmSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const BRAIN_CATEGORIES = ["General", "Admissions", "Courses", "Facilities", "History", "Placements", "Hostel", "Transport", "Fees", "Clubs & Activities", "Rules & Policies", "Other"];
 
   if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground font-display">Loading...</p></div>;
 
   const saveKBEntry = async () => {
+    if (submitting) return;
     if (!kbTitle.trim() || !kbContent.trim()) { toast({ title: "Title and content required", variant: "destructive" }); return; }
-    const { error } = await supabase.from("knowledge_base").insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim() });
-    if (error) { toast({ title: "Error saving knowledge entry", description: error.message, variant: "destructive" }); return; }
-    setShowBrainForm(false); setKbTitle(""); setKbContent(""); setKbCategory("General"); refetchKB();
-    toast({ title: "Knowledge added to Brain" });
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("knowledge_base").insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim() });
+      if (error) { toast({ title: "Error saving knowledge entry", description: error.message, variant: "destructive" }); return; }
+      setShowBrainForm(false); setKbTitle(""); setKbContent(""); setKbCategory("General"); refetchKB();
+      toast({ title: "Knowledge added to Brain" });
+    } finally { setSubmitting(false); }
   };
 
   const deleteKBEntry = async (id: string) => {
@@ -163,7 +168,10 @@ const Admin = () => {
   };
 
   const saveFaculty = async () => {
+    if (submitting) return;
     if (!fName.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
+    setSubmitting(true);
+    try {
     const payload = { name: fName.trim(), aliases: fAliases, department: fDept, office_location: fOffice, phone: fPhone };
     if (editingId) {
       await supabase.from("faculty").update(payload).eq("id", editingId);
@@ -200,6 +208,7 @@ const Admin = () => {
         toast({ title: "Faculty added but account creation failed", description: err.message, variant: "destructive" });
       }
     }
+    } finally { setSubmitting(false); }
   };
 
   const editFaculty = (f: any) => {
@@ -242,11 +251,15 @@ const Admin = () => {
 
   // --- Event helpers ---
   const saveEvent = async () => {
+    if (submitting) return;
     if (!eName.trim() || !eDate) { toast({ title: "Title and date required", variant: "destructive" }); return; }
-    const { error } = await supabase.from("events").insert({ title: eName, description: eDesc, location: eVenue, event_date: eDate, start_time: eStart || null, end_time: eEnd || null });
-    if (error) { toast({ title: "Error saving event", description: error.message, variant: "destructive" }); return; }
-    setShowEventForm(false); setEName(""); setEDesc(""); setEVenue(""); setEDate(""); setEStart(""); setEEnd(""); refetchEvents();
-    toast({ title: "Event added" });
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("events").insert({ title: eName, description: eDesc, location: eVenue, event_date: eDate, start_time: eStart || null, end_time: eEnd || null });
+      if (error) { toast({ title: "Error saving event", description: error.message, variant: "destructive" }); return; }
+      setShowEventForm(false); setEName(""); setEDesc(""); setEVenue(""); setEDate(""); setEStart(""); setEEnd(""); refetchEvents();
+      toast({ title: "Event added" });
+    } finally { setSubmitting(false); }
   };
   const deleteEvent = async (id: string) => {
     const { error } = await supabase.from("events").delete().eq("id", id);
@@ -256,11 +269,15 @@ const Admin = () => {
 
   // --- Location helpers ---
   const saveLocation = async () => {
+    if (submitting) return;
     if (!lName.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
-    const { error } = await supabase.from("locations").insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections });
-    if (error) { toast({ title: "Error saving location", description: error.message, variant: "destructive" }); return; }
-    setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); setLDirections(""); refetchLocations();
-    toast({ title: "Location added" });
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("locations").insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections });
+      if (error) { toast({ title: "Error saving location", description: error.message, variant: "destructive" }); return; }
+      setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); setLDirections(""); refetchLocations();
+      toast({ title: "Location added" });
+    } finally { setSubmitting(false); }
   };
   const deleteLocation = async (id: string) => {
     const { error } = await supabase.from("locations").delete().eq("id", id);
@@ -272,18 +289,22 @@ const Admin = () => {
   const resetDeptForm = () => { setDeptName(""); setDeptHod(""); setDeptDesc(""); setEditingDeptId(null); setShowDeptForm(false); };
 
   const saveDepartment = async () => {
+    if (submitting) return;
     if (!deptName.trim()) { toast({ title: "Department name required", variant: "destructive" }); return; }
-    const payload = { name: deptName.trim(), hod_name: deptHod.trim(), description: deptDesc.trim() };
-    if (editingDeptId) {
-      const { error } = await supabase.from("departments").update(payload).eq("id", editingDeptId);
-      if (error) { toast({ title: "Error updating department", description: error.message, variant: "destructive" }); return; }
-      toast({ title: "Department updated" });
-    } else {
-      const { error } = await supabase.from("departments").insert(payload);
-      if (error) { toast({ title: "Error adding department", description: error.message, variant: "destructive" }); return; }
-      toast({ title: "Department added" });
-    }
-    resetDeptForm(); refetchDepts();
+    setSubmitting(true);
+    try {
+      const payload = { name: deptName.trim(), hod_name: deptHod.trim(), description: deptDesc.trim() };
+      if (editingDeptId) {
+        const { error } = await supabase.from("departments").update(payload).eq("id", editingDeptId);
+        if (error) { toast({ title: "Error updating department", description: error.message, variant: "destructive" }); return; }
+        toast({ title: "Department updated" });
+      } else {
+        const { error } = await supabase.from("departments").insert(payload);
+        if (error) { toast({ title: "Error adding department", description: error.message, variant: "destructive" }); return; }
+        toast({ title: "Department added" });
+      }
+      resetDeptForm(); refetchDepts();
+    } finally { setSubmitting(false); }
   };
 
   const editDepartment = (d: any) => {
@@ -441,7 +462,7 @@ const Admin = () => {
 
                 <div className="flex gap-2 justify-end pt-2">
                   <button onClick={resetFacultyForm} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
-                  <button onClick={saveFaculty} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">
+                  <button onClick={saveFaculty} disabled={submitting} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold disabled:opacity-50">
                     {editingId ? "Update Info" : `Add Faculty${scheduleSlots.length > 0 ? ` with ${scheduleSlots.length} slot${scheduleSlots.length > 1 ? "s" : ""}` : ""}`}
                   </button>
                 </div>
@@ -599,7 +620,7 @@ const Admin = () => {
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button onClick={() => setShowEventForm(false)} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
-                  <button onClick={saveEvent} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">Add</button>
+                  <button onClick={saveEvent} disabled={submitting} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold disabled:opacity-50">Add</button>
                 </div>
               </motion.div>
             )}
@@ -639,7 +660,7 @@ const Admin = () => {
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button onClick={() => setShowLocationForm(false)} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
-                  <button onClick={saveLocation} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">Add</button>
+                  <button onClick={saveLocation} disabled={submitting} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold disabled:opacity-50">Add</button>
                 </div>
               </motion.div>
             )}
@@ -691,7 +712,7 @@ const Admin = () => {
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button onClick={resetDeptForm} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
-                  <button onClick={saveDepartment} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">{editingDeptId ? "Update" : "Add Department"}</button>
+                  <button onClick={saveDepartment} disabled={submitting} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold disabled:opacity-50">{editingDeptId ? "Update" : "Add Department"}</button>
                 </div>
               </motion.div>
             )}
@@ -734,7 +755,7 @@ const Admin = () => {
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button onClick={() => { setShowBrainForm(false); setKbTitle(""); setKbContent(""); }} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
-                  <button onClick={saveKBEntry} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">Add to Brain</button>
+                  <button onClick={saveKBEntry} disabled={submitting} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold disabled:opacity-50">Add to Brain</button>
                 </div>
               </motion.div>
             )}
