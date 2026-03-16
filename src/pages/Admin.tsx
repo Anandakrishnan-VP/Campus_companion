@@ -111,11 +111,15 @@ const Admin = () => {
   if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground font-display">Loading...</p></div>;
 
   const saveKBEntry = async () => {
+    if (submitting) return;
     if (!kbTitle.trim() || !kbContent.trim()) { toast({ title: "Title and content required", variant: "destructive" }); return; }
-    const { error } = await supabase.from("knowledge_base").insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim() });
-    if (error) { toast({ title: "Error saving knowledge entry", description: error.message, variant: "destructive" }); return; }
-    setShowBrainForm(false); setKbTitle(""); setKbContent(""); setKbCategory("General"); refetchKB();
-    toast({ title: "Knowledge added to Brain" });
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("knowledge_base").insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim() });
+      if (error) { toast({ title: "Error saving knowledge entry", description: error.message, variant: "destructive" }); return; }
+      setShowBrainForm(false); setKbTitle(""); setKbContent(""); setKbCategory("General"); refetchKB();
+      toast({ title: "Knowledge added to Brain" });
+    } finally { setSubmitting(false); }
   };
 
   const deleteKBEntry = async (id: string) => {
