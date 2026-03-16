@@ -48,7 +48,7 @@ const Professor = () => {
     </div>
   );
 
-  const markAttendance = async (status: "present" | "absent" | "leave") => {
+  const markAttendance = async (status: "present" | "leave" | "schedule_changed") => {
     const existing = myAttendance.find((a: any) => a.date === today);
     if (existing) {
       await supabase.from("attendance").update({ status }).eq("id", existing.id);
@@ -57,7 +57,7 @@ const Professor = () => {
     }
     await supabase.from("faculty").update({ is_present: status === "present" }).eq("id", facultyId);
     setTodayStatus(status);
-    toast({ title: `Marked as ${status}` });
+    toast({ title: status === "schedule_changed" ? "Marked as Schedule Changed" : `Marked as ${status}` });
   };
 
   const toggleCancel = async (id: string, current: boolean) => {
