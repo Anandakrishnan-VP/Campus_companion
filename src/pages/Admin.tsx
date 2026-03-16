@@ -660,7 +660,7 @@ const Admin = () => {
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button onClick={() => setShowLocationForm(false)} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
-                  <button onClick={saveLocation} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">Add</button>
+                  <button onClick={saveLocation} disabled={submitting} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold disabled:opacity-50">Add</button>
                 </div>
               </motion.div>
             )}
