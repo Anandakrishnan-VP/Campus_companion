@@ -208,6 +208,7 @@ const Admin = () => {
         toast({ title: "Faculty added but account creation failed", description: err.message, variant: "destructive" });
       }
     }
+    } finally { setSubmitting(false); }
   };
 
   const editFaculty = (f: any) => {
