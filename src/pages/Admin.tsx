@@ -104,6 +104,7 @@ const Admin = () => {
   const [emType, setEmType] = useState("phone");
   const [editingEmId, setEditingEmId] = useState<string | null>(null);
   const [emSubmitting, setEmSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const BRAIN_CATEGORIES = ["General", "Admissions", "Courses", "Facilities", "History", "Placements", "Hostel", "Transport", "Fees", "Clubs & Activities", "Rules & Policies", "Other"];
 
