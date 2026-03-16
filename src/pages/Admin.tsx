@@ -755,7 +755,7 @@ const Admin = () => {
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button onClick={() => { setShowBrainForm(false); setKbTitle(""); setKbContent(""); }} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
-                  <button onClick={saveKBEntry} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">Add to Brain</button>
+                  <button onClick={saveKBEntry} disabled={submitting} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold disabled:opacity-50">Add to Brain</button>
                 </div>
               </motion.div>
             )}
