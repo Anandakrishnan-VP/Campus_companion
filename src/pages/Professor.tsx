@@ -156,8 +156,8 @@ const Professor = () => {
                 {myAttendance.slice(0, 7).map((a: any) => (
                   <div key={a.id} className="glass-card px-4 py-3 flex items-center justify-between">
                     <span className="text-sm text-foreground font-body">{a.date}</span>
-                    <span className={`text-xs font-display font-semibold px-3 py-1 rounded-full ${a.status === "present" ? "bg-green-500/20 text-green-400" : a.status === "absent" ? "bg-destructive/20 text-destructive" : "bg-yellow-500/20 text-yellow-400"}`}>
-                      {a.status}
+                    <span className={`text-xs font-display font-semibold px-3 py-1 rounded-full ${a.status === "present" ? "bg-green-500/20 text-green-400" : a.status === "schedule_changed" ? "bg-orange-500/20 text-orange-400" : "bg-yellow-500/20 text-yellow-400"}`}>
+                      {a.status === "schedule_changed" ? "Schedule Changed" : a.status}
                     </span>
                   </div>
                 ))}
