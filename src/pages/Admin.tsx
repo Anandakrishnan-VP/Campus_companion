@@ -103,6 +103,7 @@ const Admin = () => {
   const [emValue, setEmValue] = useState("");
   const [emType, setEmType] = useState("phone");
   const [editingEmId, setEditingEmId] = useState<string | null>(null);
+  const [emSubmitting, setEmSubmitting] = useState(false);
 
   const BRAIN_CATEGORIES = ["General", "Admissions", "Courses", "Facilities", "History", "Placements", "Hostel", "Transport", "Fees", "Clubs & Activities", "Rules & Policies", "Other"];
 
@@ -808,18 +809,31 @@ const Admin = () => {
                       <button onClick={() => setEmType("phone")} className={`flex-1 py-2 rounded-xl text-xs font-display font-medium border transition-all ${emType === "phone" ? "bg-primary/15 text-primary border-primary/30" : "bg-secondary/50 text-muted-foreground border-border/20"}`}>📞 Phone</button>
                       <button onClick={() => setEmType("info")} className={`flex-1 py-2 rounded-xl text-xs font-display font-medium border transition-all ${emType === "info" ? "bg-primary/15 text-primary border-primary/30" : "bg-secondary/50 text-muted-foreground border-border/20"}`}>ℹ️ Info/Text</button>
                     </div>
-                    <button onClick={async () => {
+                    <button disabled={emSubmitting} onClick={async () => {
+                      if (emSubmitting) return;
                       if (!emLabel.trim() || !emValue.trim()) { toast({ title: "Label and value required", variant: "destructive" }); return; }
-                      if (editingEmId) {
-                        await (supabase.from("emergency_contacts") as any).update({ label: emLabel.trim(), value: emValue.trim(), type: emType }).eq("id", editingEmId);
-                      } else {
-                        const maxOrder = emergencyContacts.reduce((m: number, c: any) => Math.max(m, c.sort_order || 0), -1);
-                        await (supabase.from("emergency_contacts") as any).insert({ label: emLabel.trim(), value: emValue.trim(), type: emType, sort_order: maxOrder + 1 });
+                      setEmSubmitting(true);
+                      try {
+                        if (editingEmId) {
+                          const { error } = await (supabase.from("emergency_contacts") as any).update({ label: emLabel.trim(), value: emValue.trim(), type: emType }).eq("id", editingEmId);
+                          if (error) throw error;
+                        } else {
+                          // Fetch current max sort_order directly from DB to avoid stale state
+                          const { data: existing } = await (supabase.from("emergency_contacts") as any).select("sort_order").order("sort_order", { ascending: false }).limit(1);
+                          const maxOrder = existing?.[0]?.sort_order ?? -1;
+                          const { error } = await (supabase.from("emergency_contacts") as any).insert({ label: emLabel.trim(), value: emValue.trim(), type: emType, sort_order: maxOrder + 1 });
+                          if (error) throw error;
+                        }
+                        setShowEmergencyForm(false); setEditingEmId(null); setEmLabel(""); setEmValue(""); setEmType("phone");
+                        refetchEmergency(); toast({ title: editingEmId ? "Contact updated" : "Contact added" });
+                      } catch (err: any) {
+                        console.error("Emergency contact save error:", err);
+                        toast({ title: "Failed to save", description: err?.message || "Please try again", variant: "destructive" });
+                      } finally {
+                        setEmSubmitting(false);
                       }
-                      setShowEmergencyForm(false); setEditingEmId(null); setEmLabel(""); setEmValue(""); setEmType("phone");
-                      refetchEmergency(); toast({ title: editingEmId ? "Contact updated" : "Contact added" });
-                    }} className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-display font-semibold">
-                      <Save className="w-4 h-4 inline mr-2" />{editingEmId ? "Update" : "Add Contact"}
+                    }} className={`w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-display font-semibold ${emSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}>
+                      <Save className="w-4 h-4 inline mr-2" />{emSubmitting ? "Saving..." : editingEmId ? "Update" : "Add Contact"}
                     </button>
                   </motion.div>
                 )}
