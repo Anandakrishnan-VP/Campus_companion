@@ -131,11 +131,11 @@ const Professor = () => {
               <p className="text-sm text-muted-foreground mb-4">{new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</p>
               <div className={`inline-block px-4 py-2 rounded-full text-sm font-display font-semibold mb-4 ${
                 todayStatus === "present" ? "bg-green-500/20 text-green-400" :
-                todayStatus === "absent" ? "bg-destructive/20 text-destructive" :
                 todayStatus === "leave" ? "bg-yellow-500/20 text-yellow-400" :
+                todayStatus === "schedule_changed" ? "bg-orange-500/20 text-orange-400" :
                 "bg-muted/50 text-muted-foreground"
               }`}>
-                Currently: {todayStatus ? todayStatus.charAt(0).toUpperCase() + todayStatus.slice(1) : "Unmarked"}
+                Currently: {todayStatus === "schedule_changed" ? "Schedule Changed" : todayStatus ? todayStatus.charAt(0).toUpperCase() + todayStatus.slice(1) : "Unmarked"}
               </div>
               <div className="flex gap-3 justify-center flex-wrap">
                 <button onClick={() => markAttendance("present")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "present" ? "bg-green-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-green-500/20"}`}>
