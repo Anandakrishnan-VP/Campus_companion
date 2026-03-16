@@ -265,11 +265,15 @@ const Admin = () => {
 
   // --- Location helpers ---
   const saveLocation = async () => {
+    if (submitting) return;
     if (!lName.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
-    const { error } = await supabase.from("locations").insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections });
-    if (error) { toast({ title: "Error saving location", description: error.message, variant: "destructive" }); return; }
-    setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); setLDirections(""); refetchLocations();
-    toast({ title: "Location added" });
+    setSubmitting(true);
+    try {
+      const { error } = await supabase.from("locations").insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections });
+      if (error) { toast({ title: "Error saving location", description: error.message, variant: "destructive" }); return; }
+      setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); setLDirections(""); refetchLocations();
+      toast({ title: "Location added" });
+    } finally { setSubmitting(false); }
   };
   const deleteLocation = async (id: string) => {
     const { error } = await supabase.from("locations").delete().eq("id", id);
