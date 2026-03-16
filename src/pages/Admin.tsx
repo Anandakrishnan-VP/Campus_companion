@@ -712,7 +712,7 @@ const Admin = () => {
                 </div>
                 <div className="flex gap-2 justify-end">
                   <button onClick={resetDeptForm} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
-                  <button onClick={saveDepartment} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold">{editingDeptId ? "Update" : "Add Department"}</button>
+                  <button onClick={saveDepartment} disabled={submitting} className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold disabled:opacity-50">{editingDeptId ? "Update" : "Add Department"}</button>
                 </div>
               </motion.div>
             )}
