@@ -91,6 +91,7 @@ CONVERSATION RULES:
 9. ATTENDANCE STATUS: If a faculty member's status is "unmarked", explicitly say they haven't marked their attendance today and their presence is unknown. Do NOT assume they are present or absent.
 10. COLLEGE KNOWLEDGE: Use the COLLEGE INFORMATION section to answer any questions about the college - admissions, courses, facilities, fees, hostel, placements, history, rules, etc. Answer confidently from this data.
 11. DEPARTMENTS: When asked about departments, HODs, or which departments exist, use the DEPARTMENTS data. Provide HOD names and descriptions.
+12. SCHEDULE CHANGES: When a professor's status is "schedule_changed" and TEMPORARY SCHEDULE info is available, ALWAYS proactively mention it. For example: "Dr. X has a schedule change today — they'll be available from 10:00 to 12:00 in Room 204." Include the temporary time, room, and any notes. This is critical info for students looking for that professor.
 
 LIVE FACULTY DATA:
 ${facultyInfo || "No faculty data available yet. Admin has not added any faculty."}
