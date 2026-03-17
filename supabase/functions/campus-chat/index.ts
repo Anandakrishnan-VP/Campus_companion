@@ -45,7 +45,18 @@ serve(async (req) => {
       const schedule = timetableData.filter(t => t.faculty_id === f.id && !t.is_cancelled);
       const todayAttendance = attendanceData.find(a => a.faculty_id === f.id);
       const presence = todayAttendance ? todayAttendance.status : "unmarked";
-      return `- ${f.name} (aliases: ${f.aliases || "none"}) | Dept: ${f.department} | Office: ${f.office_location || "N/A"} | Phone: ${f.phone || "N/A"} | Today's status: ${presence} | Schedule: ${schedule.map(s => `${s.day_of_week} ${s.start_time?.slice(0,5)}-${s.end_time?.slice(0,5)} ${s.subject} in ${s.room}`).join("; ") || "No schedule"}`;
+      let tempScheduleInfo = "";
+      if (presence === "schedule_changed" && todayAttendance?.note) {
+        try {
+          const tmp = JSON.parse(todayAttendance.note);
+          const parts = [];
+          if (tmp.tempFrom || tmp.tempTo) parts.push(`Available ${tmp.tempFrom || "?"}-${tmp.tempTo || "?"}`);
+          if (tmp.tempRoom) parts.push(`in ${tmp.tempRoom}`);
+          if (tmp.tempNote) parts.push(`(Note: ${tmp.tempNote})`);
+          if (parts.length > 0) tempScheduleInfo = ` | TEMPORARY SCHEDULE: ${parts.join(" ")}`;
+        } catch (_) { /* not JSON, ignore */ }
+      }
+      return `- ${f.name} (aliases: ${f.aliases || "none"}) | Dept: ${f.department} | Office: ${f.office_location || "N/A"} | Phone: ${f.phone || "N/A"} | Today's status: ${presence}${tempScheduleInfo} | Schedule: ${schedule.map(s => `${s.day_of_week} ${s.start_time?.slice(0,5)}-${s.end_time?.slice(0,5)} ${s.subject} in ${s.room}`).join("; ") || "No schedule"}`;
     }).join("\n");
 
     const locationInfo = locationsData.map(l => `- ${l.name}: ${l.type}, Floor: ${l.floor || "N/A"}, Block: ${l.block || "N/A"}, ${l.description || ""} ${l.nearby_landmarks ? "Near: " + l.nearby_landmarks : ""} | HOW TO REACH: ${(l as any).directions || "No directions available"}`).join("\n");
