@@ -53,16 +53,40 @@ const Professor = () => {
     </div>
   );
 
-  const markAttendance = async (status: "present" | "leave" | "schedule_changed") => {
+  const markAttendance = async (status: "present" | "leave" | "schedule_changed", noteData?: string) => {
     const existing = myAttendance.find((a: any) => a.date === today);
     if (existing) {
-      await supabase.from("attendance").update({ status }).eq("id", existing.id);
+      await supabase.from("attendance").update({ status, note: noteData || "" }).eq("id", existing.id);
     } else {
-      await supabase.from("attendance").insert({ faculty_id: facultyId, date: today, status });
+      await supabase.from("attendance").insert({ faculty_id: facultyId, date: today, status, note: noteData || "" });
     }
     await supabase.from("faculty").update({ is_present: status === "present" }).eq("id", facultyId);
     setTodayStatus(status);
     toast({ title: status === "schedule_changed" ? "Marked as Schedule Changed" : `Marked as ${status}` });
+  };
+
+  const handleScheduleChanged = () => {
+    setTempFrom("");
+    setTempTo("");
+    setTempRoom("");
+    setTempNote("");
+    setShowScheduleDialog(true);
+  };
+
+  const submitScheduleChange = async () => {
+    if (!tempFrom || !tempTo) {
+      toast({ title: "Please enter both start and end time", variant: "destructive" });
+      return;
+    }
+    const noteData = JSON.stringify({
+      temp_from: tempFrom,
+      temp_to: tempTo,
+      temp_room: tempRoom,
+      temp_note: tempNote,
+    });
+    await markAttendance("schedule_changed", noteData);
+    setShowScheduleDialog(false);
+    toast({ title: "Schedule change saved", description: `Available ${tempFrom}–${tempTo}${tempRoom ? ` in ${tempRoom}` : ""}` });
   };
 
   const toggleCancel = async (id: string, current: boolean) => {
