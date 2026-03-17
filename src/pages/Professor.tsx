@@ -173,7 +173,7 @@ const Professor = () => {
                 <button onClick={() => markAttendance("leave")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "leave" ? "bg-yellow-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-yellow-500/20"}`}>
                   On Leave
                 </button>
-                <button onClick={() => markAttendance("schedule_changed")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "schedule_changed" ? "bg-orange-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-orange-500/20"}`}>
+                <button onClick={() => handleScheduleChanged()} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "schedule_changed" ? "bg-orange-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-orange-500/20"}`}>
                   <Clock className="w-4 h-4 inline mr-1" />Schedule Changed
                 </button>
               </div>
