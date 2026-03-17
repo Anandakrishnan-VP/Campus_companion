@@ -310,6 +310,41 @@ const Professor = () => {
           </motion.div>
         )}
       </div>
+
+      <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+        <DialogContent className="bg-background border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display">Temporary Schedule Change</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-sm">
+              Enter your temporary availability for today. This info will be visible to students and will only apply for today.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-display text-muted-foreground mb-1 block">Available From *</label>
+                <input type="time" className={inputCls} value={tempFrom} onChange={e => setTempFrom(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs font-display text-muted-foreground mb-1 block">Available Until *</label>
+                <input type="time" className={inputCls} value={tempTo} onChange={e => setTempTo(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-display text-muted-foreground mb-1 block">Temporary Room (optional)</label>
+              <input className={inputCls} value={tempRoom} onChange={e => setTempRoom(e.target.value)} placeholder="e.g. Room 204" />
+            </div>
+            <div>
+              <label className="text-xs font-display text-muted-foreground mb-1 block">Note (optional)</label>
+              <input className={inputCls} value={tempNote} onChange={e => setTempNote(e.target.value)} placeholder="e.g. Only for project queries" />
+            </div>
+            <div className="flex gap-2 justify-end pt-2">
+              <button onClick={() => setShowScheduleDialog(false)} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
+              <button onClick={submitScheduleChange} className="px-4 py-2 rounded-lg bg-orange-500 text-background text-sm font-display font-semibold">Save & Mark</button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
