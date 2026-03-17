@@ -7,12 +7,17 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const Professor = () => {
   const { user, loading: authLoading, signOut, facultyId } = useAuth("professor");
   const [activeTab, setActiveTab] = useState<"attendance" | "timetable" | "profile" | "notifications">("attendance");
   const [todayStatus, setTodayStatus] = useState<string | null>(null);
-
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [tempFrom, setTempFrom] = useState("");
+  const [tempTo, setTempTo] = useState("");
+  const [tempRoom, setTempRoom] = useState("");
+  const [tempNote, setTempNote] = useState("");
   const { data: myTimetable, refetch: refetchTimetable } = useRealtimeTable("timetable", facultyId ? { column: "faculty_id", value: facultyId } : undefined);
   const { data: myAttendance } = useRealtimeTable("attendance", facultyId ? { column: "faculty_id", value: facultyId } : undefined);
   const { data: facultyData, refetch: refetchFaculty } = useRealtimeTable("faculty");
@@ -48,16 +53,40 @@ const Professor = () => {
     </div>
   );
 
-  const markAttendance = async (status: "present" | "leave" | "schedule_changed") => {
+  const markAttendance = async (status: "present" | "leave" | "schedule_changed", noteData?: string) => {
     const existing = myAttendance.find((a: any) => a.date === today);
     if (existing) {
-      await supabase.from("attendance").update({ status }).eq("id", existing.id);
+      await supabase.from("attendance").update({ status, note: noteData || "" }).eq("id", existing.id);
     } else {
-      await supabase.from("attendance").insert({ faculty_id: facultyId, date: today, status });
+      await supabase.from("attendance").insert({ faculty_id: facultyId, date: today, status, note: noteData || "" });
     }
     await supabase.from("faculty").update({ is_present: status === "present" }).eq("id", facultyId);
     setTodayStatus(status);
     toast({ title: status === "schedule_changed" ? "Marked as Schedule Changed" : `Marked as ${status}` });
+  };
+
+  const handleScheduleChanged = () => {
+    setTempFrom("");
+    setTempTo("");
+    setTempRoom("");
+    setTempNote("");
+    setShowScheduleDialog(true);
+  };
+
+  const submitScheduleChange = async () => {
+    if (!tempFrom || !tempTo) {
+      toast({ title: "Please enter both start and end time", variant: "destructive" });
+      return;
+    }
+    const noteData = JSON.stringify({
+      temp_from: tempFrom,
+      temp_to: tempTo,
+      temp_room: tempRoom,
+      temp_note: tempNote,
+    });
+    await markAttendance("schedule_changed", noteData);
+    setShowScheduleDialog(false);
+    toast({ title: "Schedule change saved", description: `Available ${tempFrom}–${tempTo}${tempRoom ? ` in ${tempRoom}` : ""}` });
   };
 
   const toggleCancel = async (id: string, current: boolean) => {
@@ -144,7 +173,7 @@ const Professor = () => {
                 <button onClick={() => markAttendance("leave")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "leave" ? "bg-yellow-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-yellow-500/20"}`}>
                   On Leave
                 </button>
-                <button onClick={() => markAttendance("schedule_changed")} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "schedule_changed" ? "bg-orange-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-orange-500/20"}`}>
+                <button onClick={() => handleScheduleChanged()} className={`px-6 py-3 rounded-xl text-sm font-display font-semibold transition-all ${todayStatus === "schedule_changed" ? "bg-orange-500 text-background" : "bg-secondary text-secondary-foreground hover:bg-orange-500/20"}`}>
                   <Clock className="w-4 h-4 inline mr-1" />Schedule Changed
                 </button>
               </div>
@@ -153,14 +182,29 @@ const Professor = () => {
             <div>
               <h3 className="text-sm font-display font-bold text-foreground mb-3">Recent Attendance</h3>
               <div className="space-y-2">
-                {myAttendance.slice(0, 7).map((a: any) => (
-                  <div key={a.id} className="glass-card px-4 py-3 flex items-center justify-between">
-                    <span className="text-sm text-foreground font-body">{a.date}</span>
-                    <span className={`text-xs font-display font-semibold px-3 py-1 rounded-full ${a.status === "present" ? "bg-green-500/20 text-green-400" : a.status === "schedule_changed" ? "bg-orange-500/20 text-orange-400" : "bg-yellow-500/20 text-yellow-400"}`}>
-                      {a.status === "schedule_changed" ? "Schedule Changed" : a.status}
-                    </span>
-                  </div>
-                ))}
+                {myAttendance.slice(0, 7).map((a: any) => {
+                  let tempInfo: any = null;
+                  if (a.status === "schedule_changed" && a.note) {
+                    try { tempInfo = JSON.parse(a.note); } catch {}
+                  }
+                  return (
+                    <div key={a.id} className="glass-card px-4 py-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-foreground font-body">{a.date}</span>
+                        <span className={`text-xs font-display font-semibold px-3 py-1 rounded-full ${a.status === "present" ? "bg-green-500/20 text-green-400" : a.status === "schedule_changed" ? "bg-orange-500/20 text-orange-400" : "bg-yellow-500/20 text-yellow-400"}`}>
+                          {a.status === "schedule_changed" ? "Schedule Changed" : a.status}
+                        </span>
+                      </div>
+                      {tempInfo && (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          <span className="font-display font-semibold text-orange-400">Temp:</span> {tempInfo.temp_from}–{tempInfo.temp_to}
+                          {tempInfo.temp_room && <span> · {tempInfo.temp_room}</span>}
+                          {tempInfo.temp_note && <span> · {tempInfo.temp_note}</span>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </motion.div>
@@ -266,6 +310,41 @@ const Professor = () => {
           </motion.div>
         )}
       </div>
+
+      <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+        <DialogContent className="bg-background border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="font-display">Temporary Schedule Change</DialogTitle>
+            <DialogDescription className="text-muted-foreground text-sm">
+              Enter your temporary availability for today. This info will be visible to students and will only apply for today.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 mt-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-display text-muted-foreground mb-1 block">Available From *</label>
+                <input type="time" className={inputCls} value={tempFrom} onChange={e => setTempFrom(e.target.value)} />
+              </div>
+              <div>
+                <label className="text-xs font-display text-muted-foreground mb-1 block">Available Until *</label>
+                <input type="time" className={inputCls} value={tempTo} onChange={e => setTempTo(e.target.value)} />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-display text-muted-foreground mb-1 block">Temporary Room (optional)</label>
+              <input className={inputCls} value={tempRoom} onChange={e => setTempRoom(e.target.value)} placeholder="e.g. Room 204" />
+            </div>
+            <div>
+              <label className="text-xs font-display text-muted-foreground mb-1 block">Note (optional)</label>
+              <input className={inputCls} value={tempNote} onChange={e => setTempNote(e.target.value)} placeholder="e.g. Only for project queries" />
+            </div>
+            <div className="flex gap-2 justify-end pt-2">
+              <button onClick={() => setShowScheduleDialog(false)} className="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground text-sm font-display">Cancel</button>
+              <button onClick={submitScheduleChange} className="px-4 py-2 rounded-lg bg-orange-500 text-background text-sm font-display font-semibold">Save & Mark</button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
