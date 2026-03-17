@@ -7,12 +7,17 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const Professor = () => {
   const { user, loading: authLoading, signOut, facultyId } = useAuth("professor");
   const [activeTab, setActiveTab] = useState<"attendance" | "timetable" | "profile" | "notifications">("attendance");
   const [todayStatus, setTodayStatus] = useState<string | null>(null);
-
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [tempFrom, setTempFrom] = useState("");
+  const [tempTo, setTempTo] = useState("");
+  const [tempRoom, setTempRoom] = useState("");
+  const [tempNote, setTempNote] = useState("");
   const { data: myTimetable, refetch: refetchTimetable } = useRealtimeTable("timetable", facultyId ? { column: "faculty_id", value: facultyId } : undefined);
   const { data: myAttendance } = useRealtimeTable("attendance", facultyId ? { column: "faculty_id", value: facultyId } : undefined);
   const { data: facultyData, refetch: refetchFaculty } = useRealtimeTable("faculty");
