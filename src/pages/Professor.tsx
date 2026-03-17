@@ -182,14 +182,29 @@ const Professor = () => {
             <div>
               <h3 className="text-sm font-display font-bold text-foreground mb-3">Recent Attendance</h3>
               <div className="space-y-2">
-                {myAttendance.slice(0, 7).map((a: any) => (
-                  <div key={a.id} className="glass-card px-4 py-3 flex items-center justify-between">
-                    <span className="text-sm text-foreground font-body">{a.date}</span>
-                    <span className={`text-xs font-display font-semibold px-3 py-1 rounded-full ${a.status === "present" ? "bg-green-500/20 text-green-400" : a.status === "schedule_changed" ? "bg-orange-500/20 text-orange-400" : "bg-yellow-500/20 text-yellow-400"}`}>
-                      {a.status === "schedule_changed" ? "Schedule Changed" : a.status}
-                    </span>
-                  </div>
-                ))}
+                {myAttendance.slice(0, 7).map((a: any) => {
+                  let tempInfo: any = null;
+                  if (a.status === "schedule_changed" && a.note) {
+                    try { tempInfo = JSON.parse(a.note); } catch {}
+                  }
+                  return (
+                    <div key={a.id} className="glass-card px-4 py-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-foreground font-body">{a.date}</span>
+                        <span className={`text-xs font-display font-semibold px-3 py-1 rounded-full ${a.status === "present" ? "bg-green-500/20 text-green-400" : a.status === "schedule_changed" ? "bg-orange-500/20 text-orange-400" : "bg-yellow-500/20 text-yellow-400"}`}>
+                          {a.status === "schedule_changed" ? "Schedule Changed" : a.status}
+                        </span>
+                      </div>
+                      {tempInfo && (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          <span className="font-display font-semibold text-orange-400">Temp:</span> {tempInfo.temp_from}–{tempInfo.temp_to}
+                          {tempInfo.temp_room && <span> · {tempInfo.temp_room}</span>}
+                          {tempInfo.temp_note && <span> · {tempInfo.temp_note}</span>}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </motion.div>
