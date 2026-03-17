@@ -45,7 +45,18 @@ serve(async (req) => {
       const schedule = timetableData.filter(t => t.faculty_id === f.id && !t.is_cancelled);
       const todayAttendance = attendanceData.find(a => a.faculty_id === f.id);
       const presence = todayAttendance ? todayAttendance.status : "unmarked";
-      return `- ${f.name} (aliases: ${f.aliases || "none"}) | Dept: ${f.department} | Office: ${f.office_location || "N/A"} | Phone: ${f.phone || "N/A"} | Today's status: ${presence} | Schedule: ${schedule.map(s => `${s.day_of_week} ${s.start_time?.slice(0,5)}-${s.end_time?.slice(0,5)} ${s.subject} in ${s.room}`).join("; ") || "No schedule"}`;
+      let tempScheduleInfo = "";
+      if (presence === "schedule_changed" && todayAttendance?.note) {
+        try {
+          const tmp = JSON.parse(todayAttendance.note);
+          const parts = [];
+          if (tmp.tempFrom || tmp.tempTo) parts.push(`Available ${tmp.tempFrom || "?"}-${tmp.tempTo || "?"}`);
+          if (tmp.tempRoom) parts.push(`in ${tmp.tempRoom}`);
+          if (tmp.tempNote) parts.push(`(Note: ${tmp.tempNote})`);
+          if (parts.length > 0) tempScheduleInfo = ` | TEMPORARY SCHEDULE: ${parts.join(" ")}`;
+        } catch (_) { /* not JSON, ignore */ }
+      }
+      return `- ${f.name} (aliases: ${f.aliases || "none"}) | Dept: ${f.department} | Office: ${f.office_location || "N/A"} | Phone: ${f.phone || "N/A"} | Today's status: ${presence}${tempScheduleInfo} | Schedule: ${schedule.map(s => `${s.day_of_week} ${s.start_time?.slice(0,5)}-${s.end_time?.slice(0,5)} ${s.subject} in ${s.room}`).join("; ") || "No schedule"}`;
     }).join("\n");
 
     const locationInfo = locationsData.map(l => `- ${l.name}: ${l.type}, Floor: ${l.floor || "N/A"}, Block: ${l.block || "N/A"}, ${l.description || ""} ${l.nearby_landmarks ? "Near: " + l.nearby_landmarks : ""} | HOW TO REACH: ${(l as any).directions || "No directions available"}`).join("\n");
@@ -80,6 +91,7 @@ CONVERSATION RULES:
 9. ATTENDANCE STATUS: If a faculty member's status is "unmarked", explicitly say they haven't marked their attendance today and their presence is unknown. Do NOT assume they are present or absent.
 10. COLLEGE KNOWLEDGE: Use the COLLEGE INFORMATION section to answer any questions about the college - admissions, courses, facilities, fees, hostel, placements, history, rules, etc. Answer confidently from this data.
 11. DEPARTMENTS: When asked about departments, HODs, or which departments exist, use the DEPARTMENTS data. Provide HOD names and descriptions.
+12. SCHEDULE CHANGES: When a professor's status is "schedule_changed" and TEMPORARY SCHEDULE info is available, ALWAYS proactively mention it. For example: "Dr. X has a schedule change today — they'll be available from 10:00 to 12:00 in Room 204." Include the temporary time, room, and any notes. This is critical info for students looking for that professor.
 
 LIVE FACULTY DATA:
 ${facultyInfo || "No faculty data available yet. Admin has not added any faculty."}
