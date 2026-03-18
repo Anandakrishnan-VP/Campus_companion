@@ -72,6 +72,22 @@ async function streamChat({
 }
 
 const Index = () => {
+  const navigate = useNavigate();
+
+  // Redirect logged-in staff to their dashboard
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id);
+        const role = roles?.[0]?.role;
+        if (role === "admin") navigate("/admin", { replace: true });
+        else if (role === "professor") navigate("/professor", { replace: true });
+      }
+    });
+  }, [navigate]);
   const [messages, setMessages] = useState<ChatMessage[]>([
   {
     id: "welcome",

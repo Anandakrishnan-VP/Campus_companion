@@ -14,6 +14,21 @@ const Login = () => {
   const [initializing, setInitializing] = useState(true);
   const navigate = useNavigate();
 
+  // Redirect already-logged-in users to their dashboard
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session?.user) {
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", session.user.id);
+        const role = roles?.[0]?.role;
+        if (role === "admin") { navigate("/admin", { replace: true }); return; }
+        if (role === "professor") { navigate("/professor", { replace: true }); return; }
+      }
+    });
+  }, [navigate]);
+
   // Auto-create admin account (047/ncerc047) if it doesn't exist
   useEffect(() => {
     (async () => {
