@@ -1,8 +1,9 @@
-import { useState, useCallback, useRef, Suspense, lazy } from "react";
+import { useState, useCallback, useRef, useEffect, Suspense, lazy } from "react";
 import ncercLogo from "@/assets/ncerc-logo.jpg";
 import { motion } from "framer-motion";
 import { Settings, MessageSquareWarning } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import NotificationPanel from "@/components/kiosk/NotificationPanel";
 const Avatar3D = lazy(() => import("@/components/kiosk/Avatar3D"));
 import ChatInterface, { type ChatMessage, type ChatInterfaceHandle } from "@/components/kiosk/ChatInterface";
