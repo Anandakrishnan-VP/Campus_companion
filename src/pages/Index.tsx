@@ -9,6 +9,7 @@ const Avatar3D = lazy(() => import("@/components/kiosk/Avatar3D"));
 import ChatInterface, { type ChatMessage, type ChatInterfaceHandle } from "@/components/kiosk/ChatInterface";
 import QuickActions from "@/components/kiosk/QuickActions";
 import EmergencyButton from "@/components/kiosk/EmergencyButton";
+import FacultyDirectory from "@/components/kiosk/FacultyDirectory";
 import { useSpeech } from "@/hooks/use-speech";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/campus-chat`;
@@ -97,6 +98,7 @@ const Index = () => {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
+  const [showFacultyDir, setShowFacultyDir] = useState(false);
   const conversationRef = useRef<{role: string;content: string;}[]>([]);
 
   const chatRef = useRef<ChatInterfaceHandle>(null);
@@ -259,7 +261,7 @@ const Index = () => {
               <p className="text-xs mb-2 font-display uppercase tracking-wider text-center text-white">
                 Quick Actions
               </p>
-              <QuickActions onAction={handleSendMessage} onFillInput={(q) => chatRef.current?.setInput(q)} />
+              <QuickActions onAction={handleSendMessage} onFillInput={(q) => chatRef.current?.setInput(q)} onFindFaculty={() => setShowFacultyDir(true)} />
             </motion.div>
           </div>
 
@@ -285,6 +287,7 @@ const Index = () => {
       </main>
 
       <EmergencyButton />
+      <FacultyDirectory open={showFacultyDir} onClose={() => setShowFacultyDir(false)} />
 
       <footer className="relative z-10 text-center px-6 py-3 mt-auto">
         <p className="text-[10px] font-display leading-relaxed max-w-lg mx-auto text-white">

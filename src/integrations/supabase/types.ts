@@ -153,6 +153,7 @@ export type Database = {
           name: string
           office_location: string | null
           phone: string | null
+          photo_url: string | null
           updated_at: string
           user_id: string | null
         }
@@ -166,6 +167,7 @@ export type Database = {
           name: string
           office_location?: string | null
           phone?: string | null
+          photo_url?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -179,6 +181,7 @@ export type Database = {
           name?: string
           office_location?: string | null
           phone?: string | null
+          photo_url?: string | null
           updated_at?: string
           user_id?: string | null
         }
