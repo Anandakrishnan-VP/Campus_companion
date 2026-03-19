@@ -9,6 +9,7 @@ const Avatar3D = lazy(() => import("@/components/kiosk/Avatar3D"));
 import ChatInterface, { type ChatMessage, type ChatInterfaceHandle } from "@/components/kiosk/ChatInterface";
 import QuickActions from "@/components/kiosk/QuickActions";
 import EmergencyButton from "@/components/kiosk/EmergencyButton";
+import FacultyDirectory from "@/components/kiosk/FacultyDirectory";
 import { useSpeech } from "@/hooks/use-speech";
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/campus-chat`;
