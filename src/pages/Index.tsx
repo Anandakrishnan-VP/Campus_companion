@@ -261,7 +261,7 @@ const Index = () => {
               <p className="text-xs mb-2 font-display uppercase tracking-wider text-center text-white">
                 Quick Actions
               </p>
-              <QuickActions onAction={handleSendMessage} onFillInput={(q) => chatRef.current?.setInput(q)} />
+              <QuickActions onAction={handleSendMessage} onFillInput={(q) => chatRef.current?.setInput(q)} onFindFaculty={() => setShowFacultyDir(true)} />
             </motion.div>
           </div>
 
