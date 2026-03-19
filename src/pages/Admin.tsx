@@ -106,6 +106,37 @@ const Admin = () => {
   const [emSubmitting, setEmSubmitting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Faculty photo upload
+  const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
+  const [photoTargetId, setPhotoTargetId] = useState<string | null>(null);
+
+  const handlePhotoUploadClick = (facultyId: string) => {
+    setPhotoTargetId(facultyId);
+    photoInputRef.current?.click();
+  };
+
+  const handlePhotoFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !photoTargetId) return;
+    setUploadingPhotoId(photoTargetId);
+    const ext = file.name.split(".").pop();
+    const path = `${photoTargetId}.${ext}`;
+    const { error: uploadError } = await supabase.storage.from("faculty-photos").upload(path, file, { upsert: true });
+    if (uploadError) {
+      toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+      setUploadingPhotoId(null);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("faculty-photos").getPublicUrl(path);
+    await supabase.from("faculty").update({ photo_url: urlData.publicUrl }).eq("id", photoTargetId);
+    setUploadingPhotoId(null);
+    setPhotoTargetId(null);
+    e.target.value = "";
+    refetchFaculty();
+    toast({ title: "Photo updated" });
+  };
+
   const BRAIN_CATEGORIES = ["General", "Admissions", "Courses", "Facilities", "History", "Placements", "Hostel", "Transport", "Fees", "Clubs & Activities", "Rules & Policies", "Other"];
 
   if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground font-display">Loading...</p></div>;
