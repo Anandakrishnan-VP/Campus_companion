@@ -29,17 +29,16 @@ const Login = () => {
     });
   }, [navigate]);
 
-  // Auto-create admin account (047/ncerc047) if it doesn't exist
+  // Auto-create admin account (047/ncerc047) only on first-ever setup
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("user_roles").select("id").eq("role", "admin").limit(1);
-      if (!data || data.length === 0) {
-        try {
-          await supabase.functions.invoke("setup-admin", {
-            body: { admin_id: "047", password: "ncerc047" },
-          });
-        } catch { /* admin may already exist */ }
-      }
+      try {
+        const res = await supabase.functions.invoke("setup-admin", {
+          body: { admin_id: "047", password: "ncerc047" },
+        });
+        // 400 "Admin already exists" is fine — silently ignore
+        if (res.error) console.log("Admin setup skipped (already exists)");
+      } catch { /* ignore */ }
       setInitializing(false);
     })();
   }, []);
