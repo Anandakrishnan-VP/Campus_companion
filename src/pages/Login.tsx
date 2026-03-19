@@ -32,14 +32,22 @@ const Login = () => {
   // Auto-create admin account (047/ncerc047) if it doesn't exist
   useEffect(() => {
     (async () => {
-      const { data } = await supabase.from("user_roles").select("id").eq("role", "admin").limit(1);
-      if (!data || data.length === 0) {
-        try {
+      try {
+        // Try signing in as admin — if it works, admin already exists
+        const { error } = await supabase.auth.signInWithPassword({
+          email: toEmail("047"),
+          password: "ncerc047",
+        });
+        if (error) {
+          // Admin doesn't exist yet, create it
           await supabase.functions.invoke("setup-admin", {
             body: { admin_id: "047", password: "ncerc047" },
           });
-        } catch { /* admin may already exist */ }
-      }
+        } else {
+          // Sign out immediately — we were just checking
+          await supabase.auth.signOut();
+        }
+      } catch { /* ignore */ }
       setInitializing(false);
     })();
   }, []);
