@@ -98,6 +98,7 @@ const Index = () => {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
+  const [showFacultyDir, setShowFacultyDir] = useState(false);
   const conversationRef = useRef<{role: string;content: string;}[]>([]);
 
   const chatRef = useRef<ChatInterfaceHandle>(null);
