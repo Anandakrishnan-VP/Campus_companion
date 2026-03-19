@@ -287,6 +287,7 @@ const Index = () => {
       </main>
 
       <EmergencyButton />
+      <FacultyDirectory open={showFacultyDir} onClose={() => setShowFacultyDir(false)} />
 
       <footer className="relative z-10 text-center px-6 py-3 mt-auto">
         <p className="text-[10px] font-display leading-relaxed max-w-lg mx-auto text-white">
