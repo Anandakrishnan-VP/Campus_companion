@@ -491,7 +491,7 @@ const Avatar3D = ({ isSpeaking = false, isListening = false, isThinking = false,
   return (
     <div className="flex flex-col items-center gap-4">
       <div
-        className="relative w-52 h-52 md:w-64 md:h-64 cursor-pointer"
+        className="relative w-52 h-52 md:w-64 md:h-64 lg:w-80 lg:h-80 xl:w-96 xl:h-96 cursor-pointer"
         onClick={onTap}
         title={isListening ? "Tap to stop listening" : "Tap to start listening"}>
         
