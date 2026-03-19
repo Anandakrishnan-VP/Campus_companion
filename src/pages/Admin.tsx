@@ -509,6 +509,28 @@ const Admin = () => {
                   <div key={f.id} className="glass-card overflow-hidden">
                     {/* Faculty header */}
                     <div className="p-4 flex items-start justify-between gap-4">
+                      {/* Faculty photo */}
+                      <button
+                        onClick={() => handlePhotoUploadClick(f.id)}
+                        disabled={uploadingPhotoId === f.id}
+                        className="relative w-14 h-14 rounded-xl overflow-hidden bg-muted/30 flex-shrink-0 group cursor-pointer border border-border/30 hover:border-primary/40 transition-colors"
+                        title="Upload photo"
+                      >
+                        {f.photo_url ? (
+                          <img src={f.photo_url} alt={f.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <User className="w-6 h-6 text-muted-foreground/40" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          {uploadingPhotoId === f.id ? (
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Camera className="w-4 h-4 text-white" />
+                          )}
+                        </div>
+                      </button>
                       <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setExpandedFaculty(isExpanded ? null : f.id)}>
                         <div className="flex items-center gap-2">
                           <p className="font-display font-semibold text-foreground">{f.name}</p>
