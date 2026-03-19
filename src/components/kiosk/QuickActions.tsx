@@ -4,6 +4,7 @@ import { Users, MapPin, Calendar, AlertTriangle, Info, GraduationCap } from "luc
 interface QuickActionsProps {
   onAction: (query: string) => void;
   onFillInput?: (query: string) => void;
+  onFindFaculty?: () => void;
 }
 
 const actions = [
