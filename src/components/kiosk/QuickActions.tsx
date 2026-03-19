@@ -15,7 +15,7 @@ const actions = [
 { icon: Info, label: "About", query: "Tell me about this college", color: "primary" }];
 
 
-const QuickActions = ({ onAction, onFillInput }: QuickActionsProps) => {
+const QuickActions = ({ onAction, onFillInput, onFindFaculty }: QuickActionsProps) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
       {actions.map((action, i) =>
