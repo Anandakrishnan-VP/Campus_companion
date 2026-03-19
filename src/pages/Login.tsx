@@ -29,24 +29,15 @@ const Login = () => {
     });
   }, [navigate]);
 
-  // Auto-create admin account (047/ncerc047) if it doesn't exist
+  // Auto-create admin account (047/ncerc047) only on first-ever setup
   useEffect(() => {
     (async () => {
       try {
-        // Try signing in as admin — if it works, admin already exists
-        const { error } = await supabase.auth.signInWithPassword({
-          email: toEmail("047"),
-          password: "ncerc047",
+        const res = await supabase.functions.invoke("setup-admin", {
+          body: { admin_id: "047", password: "ncerc047" },
         });
-        if (error) {
-          // Admin doesn't exist yet, create it
-          await supabase.functions.invoke("setup-admin", {
-            body: { admin_id: "047", password: "ncerc047" },
-          });
-        } else {
-          // Sign out immediately — we were just checking
-          await supabase.auth.signOut();
-        }
+        // 400 "Admin already exists" is fine — silently ignore
+        if (res.error) console.log("Admin setup skipped (already exists)");
       } catch { /* ignore */ }
       setInitializing(false);
     })();
