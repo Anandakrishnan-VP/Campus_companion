@@ -988,11 +988,9 @@ const Admin = () => {
           </motion.div>
         </div>
       )}
-    </div>
-  );
       {/* Hidden file input for faculty photo upload */}
       <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoFileChange} />
-    </>
+    </div>
   );
 };
 
