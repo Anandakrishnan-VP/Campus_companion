@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Search, Upload, User, Camera } from "lucide-react";
+import { X, Search, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 
@@ -24,27 +24,11 @@ const FacultyDirectory = ({ open, onClose }: FacultyDirectoryProps) => {
   const [faculty, setFaculty] = useState<Faculty[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [uploadingId, setUploadingId] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFacultyId, setSelectedFacultyId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     fetchFaculty();
-    checkAdmin();
   }, [open]);
-
-  const checkAdmin = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) {
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", session.user.id);
-      setIsAdmin(roles?.some(r => r.role === "admin" || r.role === "professor") ?? false);
-    }
-  };
 
   const fetchFaculty = async () => {
     setLoading(true);
@@ -54,47 +38,6 @@ const FacultyDirectory = ({ open, onClose }: FacultyDirectoryProps) => {
       .order("name");
     setFaculty((data as Faculty[]) || []);
     setLoading(false);
-  };
-
-  const handleUploadClick = (facultyId: string) => {
-    setSelectedFacultyId(facultyId);
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !selectedFacultyId) return;
-
-    setUploadingId(selectedFacultyId);
-    const ext = file.name.split(".").pop();
-    const path = `${selectedFacultyId}.${ext}`;
-
-    // Upload to storage
-    const { error: uploadError } = await supabase.storage
-      .from("faculty-photos")
-      .upload(path, file, { upsert: true });
-
-    if (uploadError) {
-      console.error("Upload error:", uploadError);
-      setUploadingId(null);
-      return;
-    }
-
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from("faculty-photos")
-      .getPublicUrl(path);
-
-    // Update faculty record
-    await supabase
-      .from("faculty")
-      .update({ photo_url: urlData.publicUrl })
-      .eq("id", selectedFacultyId);
-
-    setUploadingId(null);
-    setSelectedFacultyId(null);
-    e.target.value = "";
-    fetchFaculty();
   };
 
   const filtered = faculty.filter(f =>
@@ -179,24 +122,6 @@ const FacultyDirectory = ({ open, onClose }: FacultyDirectoryProps) => {
                           <User className="w-12 h-12 text-muted-foreground/30" />
                         )}
 
-                        {/* Upload overlay for admins */}
-                        {isAdmin && (
-                          <button
-                            onClick={() => handleUploadClick(f.id)}
-                            disabled={uploadingId === f.id}
-                            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
-                          >
-                            {uploadingId === f.id ? (
-                              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                              <div className="flex flex-col items-center gap-1 text-white">
-                                <Camera className="w-6 h-6" />
-                                <span className="text-[10px] font-medium">Upload Photo</span>
-                              </div>
-                            )}
-                          </button>
-                        )}
-
                         {/* Presence indicator */}
                         <div className={`absolute top-2 right-2 w-3 h-3 rounded-full border-2 border-card ${f.is_present ? "bg-green-500" : "bg-muted-foreground/40"}`} />
                       </div>
@@ -214,15 +139,6 @@ const FacultyDirectory = ({ open, onClose }: FacultyDirectoryProps) => {
                 </div>
               )}
             </div>
-
-            {/* Hidden file input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
           </motion.div>
         </motion.div>
       )}
