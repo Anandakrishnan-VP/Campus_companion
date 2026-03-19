@@ -24,10 +24,6 @@ const FacultyDirectory = ({ open, onClose }: FacultyDirectoryProps) => {
   const [faculty, setFaculty] = useState<Faculty[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [uploadingId, setUploadingId] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFacultyId, setSelectedFacultyId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;

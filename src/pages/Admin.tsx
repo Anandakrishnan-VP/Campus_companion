@@ -990,6 +990,10 @@ const Admin = () => {
       )}
     </div>
   );
+      {/* Hidden file input for faculty photo upload */}
+      <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoFileChange} />
+    </>
+  );
 };
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
