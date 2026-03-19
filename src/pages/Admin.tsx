@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save, Brain, MessageSquare, Building2, Upload, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save, Brain, MessageSquare, Building2, Upload, AlertTriangle, Camera, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationManager from "@/components/NotificationManager";
 import { useAuth } from "@/hooks/use-auth";
