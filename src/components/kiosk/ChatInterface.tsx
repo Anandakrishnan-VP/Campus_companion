@@ -86,7 +86,7 @@ const ChatInterface = forwardRef<ChatInterfaceHandle, ChatInterfaceProps>(({
   };
 
   return (
-    <div className="glass-card flex flex-col h-[400px] md:h-[450px]">
+    <div className="glass-card flex flex-col h-[400px] md:h-[450px] lg:h-full">
       {/* Header with clear button */}
       {messages.length > 1 && onClearChat && (
         <div className="flex items-center justify-end px-4 pt-2.5 pb-0">

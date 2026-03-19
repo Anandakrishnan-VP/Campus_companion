@@ -203,7 +203,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[150px]" />
         <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-accent/5 rounded-full blur-[120px]" />
@@ -225,24 +225,22 @@ const Index = () => {
             to="/issues"
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-accent/15 text-accent-foreground hover:bg-accent/25 transition-all border border-accent/20 font-display text-sm font-medium"
             title="Student Voice">
-            
             <MessageSquareWarning className="w-4 h-4 text-accent" />
             <span className="hidden sm:inline">Student Voice</span>
           </Link>
           <Link
             to="/login"
             className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors">
-            
             <Settings className="w-5 h-5" />
           </Link>
         </div>
       </header>
 
-      <main className="relative z-10 max-w-5xl mx-auto px-4 pb-24">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+      <main className="relative z-10 flex-1 w-full max-w-5xl lg:max-w-none lg:px-12 xl:px-20 mx-auto px-4 pb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start h-full">
           <div className="flex flex-col items-center gap-6 pt-4">
             <Suspense fallback={
-            <div className="w-52 h-52 md:w-64 md:h-64 rounded-full bg-muted/20 flex items-center justify-center">
+            <div className="w-52 h-52 md:w-64 md:h-64 lg:w-80 lg:h-80 xl:w-96 xl:h-96 rounded-full bg-muted/20 flex items-center justify-center">
                 <span className="text-muted-foreground text-sm font-display">Loading avatar...</span>
               </div>
             }>
@@ -252,14 +250,12 @@ const Index = () => {
                 isThinking={isThinking}
                 status={getStatus()}
                 onTap={handleAvatarTap} />
-              
             </Suspense>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="w-full">
-              
               <p className="text-xs mb-2 font-display uppercase tracking-wider text-center text-white">
                 Quick Actions
               </p>
@@ -270,8 +266,8 @@ const Index = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.2 }}>
-            
+            transition={{ delay: 0.2 }}
+            className="lg:h-[calc(100vh-10rem)]">
             <ChatInterface
               ref={chatRef}
               messages={messages}
@@ -284,14 +280,13 @@ const Index = () => {
               isSpeaking={speech.isSpeaking}
               onStopSpeaking={speech.stopSpeaking}
               voiceSupported={speech.supported} />
-            
           </motion.div>
         </div>
       </main>
 
       <EmergencyButton />
 
-      <footer className="relative z-10 text-center px-6 py-4 pb-6">
+      <footer className="relative z-10 text-center px-6 py-3 mt-auto">
         <p className="text-[10px] font-display leading-relaxed max-w-lg mx-auto text-white">
           AI-generated responses may sometimes be inaccurate or incomplete. Please verify important information through official university sources.
         </p>
