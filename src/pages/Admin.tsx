@@ -230,6 +230,7 @@ const Admin = () => {
       resetFacultyForm();
       refetchFaculty();
       toast({ title: "Faculty updated" });
+      scrollToRef(facultyListRef);
     } else {
       const { data: newFac, error } = await supabase.from("faculty").insert(payload).select("id").single();
       if (error || !newFac) { toast({ title: "Error adding faculty", variant: "destructive" }); return; }
