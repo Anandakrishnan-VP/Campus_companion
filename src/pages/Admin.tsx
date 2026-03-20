@@ -803,7 +803,7 @@ const Admin = () => {
                   </div>
                 </div>
               ))}
-              {!showDeptForm && <AddButton label="Add Department" onClick={() => setShowDeptForm(true)} />}
+              {!showDeptForm && <AddButton label="Add Department" onClick={() => { setShowDeptForm(true); scrollToRef(deptFormRef); }} />}
             </div>
           </Section>
         )}
