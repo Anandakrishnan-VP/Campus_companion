@@ -359,6 +359,7 @@ const Admin = () => {
         toast({ title: "Department added" });
       }
       resetDeptForm(); refetchDepts();
+      scrollToRef(deptListRef);
     } finally { setSubmitting(false); }
   };
 
