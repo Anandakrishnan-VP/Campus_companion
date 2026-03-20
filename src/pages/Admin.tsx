@@ -696,8 +696,7 @@ const Admin = () => {
                 </div>
               </motion.div>
             )}
-            <div className="space-y-3">
-              {events.map((e: any) => (
+            <div ref={eventListRef} className="space-y-3">
                 <div key={e.id} className="glass-card p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <p className="font-display font-semibold text-foreground">{e.title}</p>
