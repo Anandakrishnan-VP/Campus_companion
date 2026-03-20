@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save, Brain, MessageSquare, Building2, Upload, AlertTriangle, Camera, User } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -109,6 +109,26 @@ const Admin = () => {
   // Faculty photo upload
   const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-scroll refs
+  const facultyFormRef = useRef<HTMLDivElement>(null);
+  const facultyListRef = useRef<HTMLDivElement>(null);
+  const eventFormRef = useRef<HTMLDivElement>(null);
+  const eventListRef = useRef<HTMLDivElement>(null);
+  const locationFormRef = useRef<HTMLDivElement>(null);
+  const locationListRef = useRef<HTMLDivElement>(null);
+  const deptFormRef = useRef<HTMLDivElement>(null);
+  const deptListRef = useRef<HTMLDivElement>(null);
+  const brainFormRef = useRef<HTMLDivElement>(null);
+  const brainListRef = useRef<HTMLDivElement>(null);
+  const emergencyFormRef = useRef<HTMLDivElement>(null);
+  const emergencyListRef = useRef<HTMLDivElement>(null);
+
+  const scrollToRef = useCallback((ref: React.RefObject<HTMLDivElement | null>, delay = 150) => {
+    setTimeout(() => {
+      ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, delay);
+  }, []);
   const [photoTargetId, setPhotoTargetId] = useState<string | null>(null);
 
   const handlePhotoUploadClick = (facultyId: string) => {
@@ -150,6 +170,7 @@ const Admin = () => {
       if (error) { toast({ title: "Error saving knowledge entry", description: error.message, variant: "destructive" }); return; }
       setShowBrainForm(false); setKbTitle(""); setKbContent(""); setKbCategory("General"); refetchKB();
       toast({ title: "Knowledge added to Brain" });
+      scrollToRef(brainListRef);
     } finally { setSubmitting(false); }
   };
 
@@ -209,6 +230,7 @@ const Admin = () => {
       resetFacultyForm();
       refetchFaculty();
       toast({ title: "Faculty updated" });
+      scrollToRef(facultyListRef);
     } else {
       const { data: newFac, error } = await supabase.from("faculty").insert(payload).select("id").single();
       if (error || !newFac) { toast({ title: "Error adding faculty", variant: "destructive" }); return; }
@@ -290,6 +312,7 @@ const Admin = () => {
       if (error) { toast({ title: "Error saving event", description: error.message, variant: "destructive" }); return; }
       setShowEventForm(false); setEName(""); setEDesc(""); setEVenue(""); setEDate(""); setEStart(""); setEEnd(""); refetchEvents();
       toast({ title: "Event added" });
+      scrollToRef(eventListRef);
     } finally { setSubmitting(false); }
   };
   const deleteEvent = async (id: string) => {
@@ -308,6 +331,7 @@ const Admin = () => {
       if (error) { toast({ title: "Error saving location", description: error.message, variant: "destructive" }); return; }
       setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); setLDirections(""); refetchLocations();
       toast({ title: "Location added" });
+      scrollToRef(locationListRef);
     } finally { setSubmitting(false); }
   };
   const deleteLocation = async (id: string) => {
@@ -335,6 +359,7 @@ const Admin = () => {
         toast({ title: "Department added" });
       }
       resetDeptForm(); refetchDepts();
+      scrollToRef(deptListRef);
     } finally { setSubmitting(false); }
   };
 
@@ -418,7 +443,7 @@ const Admin = () => {
           <Section title="Faculty Members & Schedules">
             {/* Add/Edit Faculty Form */}
             {showFacultyForm && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-4">
+              <motion.div ref={facultyFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-4">
                 <p className="text-sm font-display font-semibold text-foreground">{editingId ? "Edit Faculty" : "Add New Faculty"}</p>
 
                 {/* Basic info */}
@@ -501,7 +526,7 @@ const Admin = () => {
             )}
 
             {/* Faculty list */}
-            <div className="space-y-3">
+            <div ref={facultyListRef} className="space-y-3">
               {faculty.map((f: any) => {
                 const schedule = getFacultySchedule(f.id);
                 const isExpanded = expandedFaculty === f.id;
@@ -636,7 +661,7 @@ const Admin = () => {
               })}
               {!showFacultyForm && !showCsvFaculty && (
                 <div className="flex gap-2">
-                  <AddButton label="Add Faculty" onClick={() => setShowFacultyForm(true)} />
+                  <AddButton label="Add Faculty" onClick={() => { setShowFacultyForm(true); scrollToRef(facultyFormRef); }} />
                   <button onClick={() => setShowCsvFaculty(true)} className="w-full py-3 rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center gap-2 font-display">
                     <Upload className="w-4 h-4" />Import CSV
                   </button>
@@ -662,7 +687,7 @@ const Admin = () => {
         {activeTab === "events" && (
           <Section title="Events">
             {showEventForm && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
+              <motion.div ref={eventFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className={labelCls}>Event Title *</label><input className={inputCls} value={eName} onChange={e => setEName(e.target.value)} placeholder="Tech Fest 2026" /></div>
                   <div><label className={labelCls}>Venue *</label><input className={inputCls} value={eVenue} onChange={e => setEVenue(e.target.value)} placeholder="Main Auditorium" /></div>
@@ -677,7 +702,7 @@ const Admin = () => {
                 </div>
               </motion.div>
             )}
-            <div className="space-y-3">
+            <div ref={eventListRef} className="space-y-3">
               {events.map((e: any) => (
                 <div key={e.id} className="glass-card p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -688,7 +713,7 @@ const Admin = () => {
                   <button onClick={() => deleteEvent(e.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))}
-              {!showEventForm && <AddButton label="Add Event" onClick={() => setShowEventForm(true)} />}
+              {!showEventForm && <AddButton label="Add Event" onClick={() => { setShowEventForm(true); scrollToRef(eventFormRef); }} />}
             </div>
           </Section>
         )}
@@ -697,7 +722,7 @@ const Admin = () => {
         {activeTab === "locations" && (
           <Section title="Locations & Navigation">
             {showLocationForm && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
+              <motion.div ref={locationFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className={labelCls}>Place Name *</label><input className={inputCls} value={lName} onChange={e => setLName(e.target.value)} placeholder="AI Lab" /></div>
                   <div><label className={labelCls}>Type</label>
@@ -717,7 +742,7 @@ const Admin = () => {
                 </div>
               </motion.div>
             )}
-            <div className="space-y-3">
+            <div ref={locationListRef} className="space-y-3">
               {locations.map((l: any) => (
                 <div key={l.id} className="glass-card p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -731,7 +756,7 @@ const Admin = () => {
               ))}
               {!showLocationForm && !showCsvLocations && (
                 <div className="flex gap-2">
-                  <AddButton label="Add Location" onClick={() => setShowLocationForm(true)} />
+                  <AddButton label="Add Location" onClick={() => { setShowLocationForm(true); scrollToRef(locationFormRef); }} />
                   <button onClick={() => setShowCsvLocations(true)} className="w-full py-3 rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center gap-2 font-display">
                     <Upload className="w-4 h-4" />Import CSV
                   </button>
@@ -756,7 +781,7 @@ const Admin = () => {
         {activeTab === "departments" && (
           <Section title="Departments & HODs">
             {showDeptForm && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
+              <motion.div ref={deptFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
                 <p className="text-sm font-display font-semibold text-foreground">{editingDeptId ? "Edit Department" : "Add New Department"}</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className={labelCls}>Department Name *</label><input className={inputCls} value={deptName} onChange={e => setDeptName(e.target.value)} placeholder="Computer Science & Engineering" /></div>
@@ -769,7 +794,7 @@ const Admin = () => {
                 </div>
               </motion.div>
             )}
-            <div className="space-y-3">
+            <div ref={deptListRef} className="space-y-3">
               {departments.map((d: any) => (
                 <div key={d.id} className="glass-card p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -783,7 +808,7 @@ const Admin = () => {
                   </div>
                 </div>
               ))}
-              {!showDeptForm && <AddButton label="Add Department" onClick={() => setShowDeptForm(true)} />}
+              {!showDeptForm && <AddButton label="Add Department" onClick={() => { setShowDeptForm(true); scrollToRef(deptFormRef); }} />}
             </div>
           </Section>
         )}
@@ -793,7 +818,7 @@ const Admin = () => {
           <Section title="🧠 Brain — College Knowledge Base">
             <p className="text-xs text-muted-foreground mb-4">Add information about the college here. The AI assistant will use this to answer student queries.</p>
             {showBrainForm && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
+              <motion.div ref={brainFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className={labelCls}>Category</label>
                     <select className={inputCls} value={kbCategory} onChange={e => setKbCategory(e.target.value)}>
@@ -812,7 +837,7 @@ const Admin = () => {
                 </div>
               </motion.div>
             )}
-            <div className="space-y-3">
+            <div ref={brainListRef} className="space-y-3">
               {knowledgeBase.map((kb: any) => (
                 <div key={kb.id} className="glass-card p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
@@ -825,7 +850,7 @@ const Admin = () => {
                   <button onClick={() => deleteKBEntry(kb.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))}
-              {!showBrainForm && <AddButton label="Add Knowledge" onClick={() => setShowBrainForm(true)} />}
+              {!showBrainForm && <AddButton label="Add Knowledge" onClick={() => { setShowBrainForm(true); scrollToRef(brainFormRef); }} />}
             </div>
           </Section>
         )}
@@ -843,7 +868,7 @@ const Admin = () => {
         {/* ===== EMERGENCY TAB ===== */}
         {activeTab === "emergency" && (
           <Section title="Emergency Contacts">
-            <div className="space-y-3">
+            <div ref={emergencyListRef} className="space-y-3">
               {emergencyContacts.sort((a: any, b: any) => a.sort_order - b.sort_order).map((c: any) => (
                 <motion.div key={c.id} layout className="glass-card p-4 flex items-center justify-between">
                   <div className="flex-1 min-w-0">
@@ -872,7 +897,7 @@ const Admin = () => {
 
               <AnimatePresence>
                 {showEmergencyForm && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="glass-card p-4 space-y-3 overflow-hidden">
+                  <motion.div ref={emergencyFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="glass-card p-4 space-y-3 overflow-hidden">
                     <div className="flex items-center justify-between">
                       <h3 className="font-display font-bold text-foreground text-sm">{editingEmId ? "Edit Contact" : "Add Emergency Contact"}</h3>
                       <button onClick={() => { setShowEmergencyForm(false); setEditingEmId(null); setEmLabel(""); setEmValue(""); setEmType("phone"); }} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
@@ -900,6 +925,7 @@ const Admin = () => {
                         }
                         setShowEmergencyForm(false); setEditingEmId(null); setEmLabel(""); setEmValue(""); setEmType("phone");
                         refetchEmergency(); toast({ title: editingEmId ? "Contact updated" : "Contact added" });
+                        scrollToRef(emergencyListRef);
                       } catch (err: any) {
                         console.error("Emergency contact save error:", err);
                         toast({ title: "Failed to save", description: err?.message || "Please try again", variant: "destructive" });
@@ -913,7 +939,7 @@ const Admin = () => {
                 )}
               </AnimatePresence>
 
-              {!showEmergencyForm && <AddButton label="Add Emergency Contact" onClick={() => setShowEmergencyForm(true)} />}
+              {!showEmergencyForm && <AddButton label="Add Emergency Contact" onClick={() => { setShowEmergencyForm(true); scrollToRef(emergencyFormRef); }} />}
             </div>
           </Section>
         )}
