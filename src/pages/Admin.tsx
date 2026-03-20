@@ -845,7 +845,7 @@ const Admin = () => {
                   <button onClick={() => deleteKBEntry(kb.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))}
-              {!showBrainForm && <AddButton label="Add Knowledge" onClick={() => setShowBrainForm(true)} />}
+              {!showBrainForm && <AddButton label="Add Knowledge" onClick={() => { setShowBrainForm(true); scrollToRef(brainFormRef); }} />}
             </div>
           </Section>
         )}
