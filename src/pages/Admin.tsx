@@ -773,7 +773,7 @@ const Admin = () => {
         {activeTab === "departments" && (
           <Section title="Departments & HODs">
             {showDeptForm && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
+              <motion.div ref={deptFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
                 <p className="text-sm font-display font-semibold text-foreground">{editingDeptId ? "Edit Department" : "Add New Department"}</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className={labelCls}>Department Name *</label><input className={inputCls} value={deptName} onChange={e => setDeptName(e.target.value)} placeholder="Computer Science & Engineering" /></div>
