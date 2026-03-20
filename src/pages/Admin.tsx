@@ -331,6 +331,7 @@ const Admin = () => {
       if (error) { toast({ title: "Error saving location", description: error.message, variant: "destructive" }); return; }
       setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); setLDirections(""); refetchLocations();
       toast({ title: "Location added" });
+      scrollToRef(locationListRef);
     } finally { setSubmitting(false); }
   };
   const deleteLocation = async (id: string) => {
