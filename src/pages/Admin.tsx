@@ -886,7 +886,7 @@ const Admin = () => {
 
               <AnimatePresence>
                 {showEmergencyForm && (
-                  <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="glass-card p-4 space-y-3 overflow-hidden">
+                  <motion.div ref={emergencyFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="glass-card p-4 space-y-3 overflow-hidden">
                     <div className="flex items-center justify-between">
                       <h3 className="font-display font-bold text-foreground text-sm">{editingEmId ? "Edit Contact" : "Add Emergency Contact"}</h3>
                       <button onClick={() => { setShowEmergencyForm(false); setEditingEmId(null); setEmLabel(""); setEmValue(""); setEmType("phone"); }} className="text-muted-foreground hover:text-foreground"><X className="w-4 h-4" /></button>
