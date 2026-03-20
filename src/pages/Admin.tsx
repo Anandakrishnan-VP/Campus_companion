@@ -656,7 +656,7 @@ const Admin = () => {
               })}
               {!showFacultyForm && !showCsvFaculty && (
                 <div className="flex gap-2">
-                  <AddButton label="Add Faculty" onClick={() => setShowFacultyForm(true)} />
+                  <AddButton label="Add Faculty" onClick={() => { setShowFacultyForm(true); scrollToRef(facultyFormRef); }} />
                   <button onClick={() => setShowCsvFaculty(true)} className="w-full py-3 rounded-xl border border-dashed border-border/50 text-sm text-muted-foreground hover:text-primary hover:border-primary/30 transition-all flex items-center justify-center gap-2 font-display">
                     <Upload className="w-4 h-4" />Import CSV
                   </button>
