@@ -809,7 +809,7 @@ const Admin = () => {
           <Section title="🧠 Brain — College Knowledge Base">
             <p className="text-xs text-muted-foreground mb-4">Add information about the college here. The AI assistant will use this to answer student queries.</p>
             {showBrainForm && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
+              <motion.div ref={brainFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className={labelCls}>Category</label>
                     <select className={inputCls} value={kbCategory} onChange={e => setKbCategory(e.target.value)}>
