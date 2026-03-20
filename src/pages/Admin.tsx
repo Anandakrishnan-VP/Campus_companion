@@ -788,6 +788,7 @@ const Admin = () => {
               </motion.div>
             )}
             <div ref={deptListRef} className="space-y-3">
+              {departments.map((d: any) => (
                 <div key={d.id} className="glass-card p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <p className="font-display font-semibold text-foreground">{d.name}</p>
