@@ -522,6 +522,7 @@ const Admin = () => {
 
             {/* Faculty list */}
             <div ref={facultyListRef} className="space-y-3">
+              {faculty.map((f: any) => {
                 const schedule = getFacultySchedule(f.id);
                 const isExpanded = expandedFaculty === f.id;
                 return (
