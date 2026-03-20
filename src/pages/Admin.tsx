@@ -933,7 +933,7 @@ const Admin = () => {
                 )}
               </AnimatePresence>
 
-              {!showEmergencyForm && <AddButton label="Add Emergency Contact" onClick={() => setShowEmergencyForm(true)} />}
+              {!showEmergencyForm && <AddButton label="Add Emergency Contact" onClick={() => { setShowEmergencyForm(true); scrollToRef(emergencyFormRef); }} />}
             </div>
           </Section>
         )}
