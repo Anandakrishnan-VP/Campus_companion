@@ -708,7 +708,7 @@ const Admin = () => {
                   <button onClick={() => deleteEvent(e.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))}
-              {!showEventForm && <AddButton label="Add Event" onClick={() => setShowEventForm(true)} />}
+              {!showEventForm && <AddButton label="Add Event" onClick={() => { setShowEventForm(true); scrollToRef(eventFormRef); }} />}
             </div>
           </Section>
         )}
