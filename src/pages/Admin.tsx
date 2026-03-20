@@ -925,6 +925,7 @@ const Admin = () => {
                         }
                         setShowEmergencyForm(false); setEditingEmId(null); setEmLabel(""); setEmValue(""); setEmType("phone");
                         refetchEmergency(); toast({ title: editingEmId ? "Contact updated" : "Contact added" });
+                        scrollToRef(emergencyListRef);
                       } catch (err: any) {
                         console.error("Emergency contact save error:", err);
                         toast({ title: "Failed to save", description: err?.message || "Please try again", variant: "destructive" });
