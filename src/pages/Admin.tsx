@@ -312,6 +312,7 @@ const Admin = () => {
       if (error) { toast({ title: "Error saving event", description: error.message, variant: "destructive" }); return; }
       setShowEventForm(false); setEName(""); setEDesc(""); setEVenue(""); setEDate(""); setEStart(""); setEEnd(""); refetchEvents();
       toast({ title: "Event added" });
+      scrollToRef(eventListRef);
     } finally { setSubmitting(false); }
   };
   const deleteEvent = async (id: string) => {
