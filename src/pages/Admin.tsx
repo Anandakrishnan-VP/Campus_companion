@@ -858,8 +858,7 @@ const Admin = () => {
         {/* ===== EMERGENCY TAB ===== */}
         {activeTab === "emergency" && (
           <Section title="Emergency Contacts">
-            <div className="space-y-3">
-              {emergencyContacts.sort((a: any, b: any) => a.sort_order - b.sort_order).map((c: any) => (
+            <div ref={emergencyListRef} className="space-y-3">
                 <motion.div key={c.id} layout className="glass-card p-4 flex items-center justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
