@@ -170,6 +170,7 @@ const Admin = () => {
       if (error) { toast({ title: "Error saving knowledge entry", description: error.message, variant: "destructive" }); return; }
       setShowBrainForm(false); setKbTitle(""); setKbContent(""); setKbCategory("General"); refetchKB();
       toast({ title: "Knowledge added to Brain" });
+      scrollToRef(brainListRef);
     } finally { setSubmitting(false); }
   };
 
