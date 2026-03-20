@@ -109,6 +109,26 @@ const Admin = () => {
   // Faculty photo upload
   const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-scroll refs
+  const facultyFormRef = useRef<HTMLDivElement>(null);
+  const facultyListRef = useRef<HTMLDivElement>(null);
+  const eventFormRef = useRef<HTMLDivElement>(null);
+  const eventListRef = useRef<HTMLDivElement>(null);
+  const locationFormRef = useRef<HTMLDivElement>(null);
+  const locationListRef = useRef<HTMLDivElement>(null);
+  const deptFormRef = useRef<HTMLDivElement>(null);
+  const deptListRef = useRef<HTMLDivElement>(null);
+  const brainFormRef = useRef<HTMLDivElement>(null);
+  const brainListRef = useRef<HTMLDivElement>(null);
+  const emergencyFormRef = useRef<HTMLDivElement>(null);
+  const emergencyListRef = useRef<HTMLDivElement>(null);
+
+  const scrollToRef = useCallback((ref: React.RefObject<HTMLDivElement | null>, delay = 150) => {
+    setTimeout(() => {
+      ref.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, delay);
+  }, []);
   const [photoTargetId, setPhotoTargetId] = useState<string | null>(null);
 
   const handlePhotoUploadClick = (facultyId: string) => {
