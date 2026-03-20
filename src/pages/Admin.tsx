@@ -438,7 +438,7 @@ const Admin = () => {
           <Section title="Faculty Members & Schedules">
             {/* Add/Edit Faculty Form */}
             {showFacultyForm && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-4">
+              <motion.div ref={facultyFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-4">
                 <p className="text-sm font-display font-semibold text-foreground">{editingId ? "Edit Faculty" : "Add New Faculty"}</p>
 
                 {/* Basic info */}
