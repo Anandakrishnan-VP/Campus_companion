@@ -735,8 +735,7 @@ const Admin = () => {
                 </div>
               </motion.div>
             )}
-            <div className="space-y-3">
-              {locations.map((l: any) => (
+            <div ref={locationListRef} className="space-y-3">
                 <div key={l.id} className="glass-card p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <p className="font-display font-semibold text-foreground">{l.name}</p>
