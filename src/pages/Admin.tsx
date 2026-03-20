@@ -828,8 +828,7 @@ const Admin = () => {
                 </div>
               </motion.div>
             )}
-            <div className="space-y-3">
-              {knowledgeBase.map((kb: any) => (
+            <div ref={brainListRef} className="space-y-3">
                 <div key={kb.id} className="glass-card p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
