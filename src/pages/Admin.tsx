@@ -715,7 +715,7 @@ const Admin = () => {
         {activeTab === "locations" && (
           <Section title="Locations & Navigation">
             {showLocationForm && (
-              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
+              <motion.div ref={locationFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div><label className={labelCls}>Place Name *</label><input className={inputCls} value={lName} onChange={e => setLName(e.target.value)} placeholder="AI Lab" /></div>
                   <div><label className={labelCls}>Type</label>
