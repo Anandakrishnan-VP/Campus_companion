@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save, Brain, MessageSquare, Building2, Upload, AlertTriangle, Camera, User } from "lucide-react";
+import { ArrowLeft, Users, Calendar, MapPin, Plus, Trash2, Edit2, X, LogOut, UserPlus, Bell, Copy, CheckCheck, Clock, ChevronDown, ChevronUp, Save, Brain, MessageSquare, Building2, Upload, AlertTriangle, Camera, User, Search } from "lucide-react";
 import { Link } from "react-router-dom";
 import NotificationManager from "@/components/NotificationManager";
 import { useAuth } from "@/hooks/use-auth";
@@ -105,6 +105,10 @@ const Admin = () => {
   const [editingEmId, setEditingEmId] = useState<string | null>(null);
   const [emSubmitting, setEmSubmitting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Search filters
+  const [facultySearch, setFacultySearch] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
 
   // Faculty photo upload
   const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
@@ -527,7 +531,26 @@ const Admin = () => {
 
             {/* Faculty list */}
             <div ref={facultyListRef} className="space-y-3">
-              {faculty.map((f: any) => {
+              {/* Search bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  className={`${inputCls} pl-9`}
+                  value={facultySearch}
+                  onChange={e => setFacultySearch(e.target.value)}
+                  placeholder="Search faculty by name, department, or office..."
+                />
+                {facultySearch && (
+                  <button onClick={() => setFacultySearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              {faculty.filter((f: any) => {
+                if (!facultySearch.trim()) return true;
+                const q = facultySearch.toLowerCase();
+                return f.name?.toLowerCase().includes(q) || f.department?.toLowerCase().includes(q) || f.office_location?.toLowerCase().includes(q) || f.aliases?.toLowerCase().includes(q);
+              }).map((f: any) => {
                 const schedule = getFacultySchedule(f.id);
                 const isExpanded = expandedFaculty === f.id;
                 return (
@@ -743,7 +766,26 @@ const Admin = () => {
               </motion.div>
             )}
             <div ref={locationListRef} className="space-y-3">
-              {locations.map((l: any) => (
+              {/* Search bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  className={`${inputCls} pl-9`}
+                  value={locationSearch}
+                  onChange={e => setLocationSearch(e.target.value)}
+                  placeholder="Search locations by name, type, block, or floor..."
+                />
+                {locationSearch && (
+                  <button onClick={() => setLocationSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              {locations.filter((l: any) => {
+                if (!locationSearch.trim()) return true;
+                const q = locationSearch.toLowerCase();
+                return l.name?.toLowerCase().includes(q) || l.type?.toLowerCase().includes(q) || l.block?.toLowerCase().includes(q) || l.floor?.toLowerCase().includes(q) || l.description?.toLowerCase().includes(q);
+              }).map((l: any) => (
                 <div key={l.id} className="glass-card p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <p className="font-display font-semibold text-foreground">{l.name}</p>
