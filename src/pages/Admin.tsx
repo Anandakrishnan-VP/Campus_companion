@@ -531,7 +531,26 @@ const Admin = () => {
 
             {/* Faculty list */}
             <div ref={facultyListRef} className="space-y-3">
-              {faculty.map((f: any) => {
+              {/* Search bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  className={`${inputCls} pl-9`}
+                  value={facultySearch}
+                  onChange={e => setFacultySearch(e.target.value)}
+                  placeholder="Search faculty by name, department, or office..."
+                />
+                {facultySearch && (
+                  <button onClick={() => setFacultySearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              {faculty.filter((f: any) => {
+                if (!facultySearch.trim()) return true;
+                const q = facultySearch.toLowerCase();
+                return f.name?.toLowerCase().includes(q) || f.department?.toLowerCase().includes(q) || f.office_location?.toLowerCase().includes(q) || f.aliases?.toLowerCase().includes(q);
+              }).map((f: any) => {
                 const schedule = getFacultySchedule(f.id);
                 const isExpanded = expandedFaculty === f.id;
                 return (
