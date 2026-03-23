@@ -106,6 +106,10 @@ const Admin = () => {
   const [emSubmitting, setEmSubmitting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Search filters
+  const [facultySearch, setFacultySearch] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
+
   // Faculty photo upload
   const [uploadingPhotoId, setUploadingPhotoId] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
