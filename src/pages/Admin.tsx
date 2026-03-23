@@ -766,7 +766,26 @@ const Admin = () => {
               </motion.div>
             )}
             <div ref={locationListRef} className="space-y-3">
-              {locations.map((l: any) => (
+              {/* Search bar */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  className={`${inputCls} pl-9`}
+                  value={locationSearch}
+                  onChange={e => setLocationSearch(e.target.value)}
+                  placeholder="Search locations by name, type, block, or floor..."
+                />
+                {locationSearch && (
+                  <button onClick={() => setLocationSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              {locations.filter((l: any) => {
+                if (!locationSearch.trim()) return true;
+                const q = locationSearch.toLowerCase();
+                return l.name?.toLowerCase().includes(q) || l.type?.toLowerCase().includes(q) || l.block?.toLowerCase().includes(q) || l.floor?.toLowerCase().includes(q) || l.description?.toLowerCase().includes(q);
+              }).map((l: any) => (
                 <div key={l.id} className="glass-card p-4 flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <p className="font-display font-semibold text-foreground">{l.name}</p>
