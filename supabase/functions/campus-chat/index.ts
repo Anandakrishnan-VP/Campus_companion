@@ -7,6 +7,30 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function extractText(html: string): string {
+  let text = html.replace(/<(script|style|nav|footer|header|noscript)[^>]*>[\s\S]*?<\/\1>/gi, " ");
+  text = text.replace(/<[^>]+>/g, " ");
+  text = text.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ");
+  text = text.replace(/\s+/g, " ").trim();
+  return text;
+}
+
+async function scrapeUrl(url: string): Promise<string> {
+  try {
+    const res = await fetch(url, {
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; CampusBot/1.0)" },
+    });
+    if (!res.ok) return `Error: Could not fetch ${url} (HTTP ${res.status})`;
+    const html = await res.text();
+    let text = extractText(html);
+    if (text.length > 15000) text = text.slice(0, 15000);
+    return text || "No content found on this page.";
+  } catch (e) {
+    return `Error fetching ${url}: ${e instanceof Error ? e.message : "Unknown error"}`;
+  }
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -67,7 +91,16 @@ serve(async (req) => {
       ? deptsData.map((d: any) => `- ${d.name}: HOD: ${d.hod_name || "N/A"}${d.description ? ", " + d.description : ""}`).join("\n")
       : "No department data available yet.";
 
-    // Knowledge base grouped by category
+    // Extract source URLs from knowledge base for live lookup
+    const sourceUrls: string[] = [];
+    kbData.forEach(kb => {
+      const match = kb.content.match(/\[Source:\s*(https?:\/\/[^\]]+)\]/);
+      if (match) sourceUrls.push(match[1]);
+    });
+    const websiteDomain = sourceUrls.length > 0
+      ? new URL(sourceUrls[0]).origin
+      : "https://ncerc.ac.in";
+
     const kbInfo = kbData.length > 0
       ? kbData.map(kb => `[${kb.category}] ${kb.title}: ${kb.content}`).join("\n")
       : "No additional college information available yet.";
@@ -96,7 +129,13 @@ CONVERSATION RULES:
 9. ATTENDANCE STATUS: If a faculty member's status is "unmarked", explicitly say they haven't marked their attendance today and their presence is unknown. Do NOT assume they are present or absent.
 10. COLLEGE KNOWLEDGE: When a user asks ANYTHING about the college — admissions, courses, facilities, fees, hostel, placements, history, rules, departments, infrastructure, achievements, or any general information — THOROUGHLY search the COLLEGE INFORMATION section below. Provide ALL relevant details found there. Do not omit information. If multiple knowledge entries are relevant, combine information from all of them into one comprehensive answer.
 11. DEPARTMENTS: When asked about departments, HODs, or which departments exist, use the DEPARTMENTS data. Provide HOD names and descriptions.
-12. SCHEDULE CHANGES: When a professor's status is "schedule_changed" and TEMPORARY SCHEDULE info is available, ALWAYS proactively mention it. For example: "Dr. X has a schedule change today — they'll be available from 10:00 to 12:00 in Room 204." Include the temporary time, room, and any notes. This is critical info for students looking for that professor.
+12. SCHEDULE CHANGES: When a professor's status is "schedule_changed" and TEMPORARY SCHEDULE info is available, ALWAYS proactively mention it.
+13. LIVE WEBSITE SEARCH: You have a tool called "search_college_website" that can fetch LIVE information from the college website (${websiteDomain}). USE THIS TOOL whenever:
+    - The user asks about something NOT covered in your existing COLLEGE INFORMATION data below.
+    - The user asks for very specific details (fees, specific contacts, specific department info, admission procedures, etc.) that you don't have.
+    - You want to verify or get the latest information.
+    - The user specifically mentions checking the website.
+    When calling the tool, construct a likely URL path. Common pages: /contact, /about, /admissions, /placements, /departments, /facilities, /hostel, /scholarships, /gallery, /faculty, /courses.
 
 LIVE FACULTY DATA:
 ${facultyInfo || "No faculty data available yet. Admin has not added any faculty."}
@@ -118,7 +157,75 @@ EMERGENCY CONTACTS:
 - Medical: +91-XXX-XXX-5678
 - Fire: 101`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "search_college_website",
+          description: `Fetches and reads a page from the college website to find specific information. Use this when existing knowledge doesn't have the answer. The college website base URL is ${websiteDomain}.`,
+          parameters: {
+            type: "object",
+            properties: {
+              url: {
+                type: "string",
+                description: `The full URL to fetch. Must start with ${websiteDomain}. Examples: ${websiteDomain}/contact, ${websiteDomain}/admissions, ${websiteDomain}/placements`,
+              },
+            },
+            required: ["url"],
+          },
+        },
+      },
+    ];
+
+    const aiMessages: any[] = [{ role: "system", content: SYSTEM_PROMPT }, ...messages];
+
+    // Helper: consume an SSE stream and reconstruct the full message
+    async function consumeSSE(response: Response): Promise<any> {
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let content = "";
+      let toolCalls: any[] = [];
+      let finishReason = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let idx: number;
+        while ((idx = buf.indexOf("\n")) !== -1) {
+          let line = buf.slice(0, idx);
+          buf = buf.slice(idx + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          const json = line.slice(6).trim();
+          if (json === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(json);
+            const delta = parsed.choices?.[0]?.delta;
+            const fr = parsed.choices?.[0]?.finish_reason;
+            if (fr) finishReason = fr;
+            if (delta?.content) content += delta.content;
+            if (delta?.tool_calls) {
+              for (const tc of delta.tool_calls) {
+                const i = tc.index ?? 0;
+                if (!toolCalls[i]) toolCalls[i] = { id: "", type: "function", function: { name: "", arguments: "" } };
+                if (tc.id) toolCalls[i].id = tc.id;
+                if (tc.function?.name) toolCalls[i].function.name = tc.function.name;
+                if (tc.function?.arguments) toolCalls[i].function.arguments += tc.function.arguments;
+              }
+            }
+          } catch { /* skip partial */ }
+        }
+      }
+
+      const msg: any = { role: "assistant", content: content || null };
+      if (toolCalls.length > 0) msg.tool_calls = toolCalls;
+      return { message: msg, finish_reason: finishReason };
+    }
+
+    // First call: with tools, consumed as SSE to detect tool calls
+    const firstResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${LOVABLE_API_KEY}`,
@@ -126,24 +233,90 @@ EMERGENCY CONTACTS:
       },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
-        messages: [{ role: "system", content: SYSTEM_PROMPT }, ...messages],
+        messages: aiMessages,
+        tools,
         stream: true,
       }),
     });
 
-    if (!response.ok) {
-      if (response.status === 429) {
+    if (!firstResponse.ok) {
+      if (firstResponse.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      if (response.status === 402) {
+      if (firstResponse.status === 402) {
         return new Response(JSON.stringify({ error: "AI credits exhausted." }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
+      const t = await firstResponse.text();
+      console.error("AI gateway error:", firstResponse.status, t);
       return new Response(JSON.stringify({ error: "AI service error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    return new Response(response.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
+    const firstResult = await consumeSSE(firstResponse);
+
+    // Check if AI wants to call a tool
+    if (firstResult.message.tool_calls?.length > 0) {
+      const toolCalls = firstResult.message.tool_calls;
+      const toolResults = [];
+
+      for (const tc of toolCalls) {
+        if (tc.function.name === "search_college_website") {
+          let args;
+          try {
+            args = JSON.parse(tc.function.arguments);
+          } catch {
+            args = { url: websiteDomain };
+          }
+          
+          // Security: only allow scraping the college domain
+          let targetUrl = args.url || websiteDomain;
+          if (!targetUrl.startsWith(websiteDomain)) {
+            targetUrl = websiteDomain + (targetUrl.startsWith("/") ? targetUrl : "/" + targetUrl);
+          }
+
+          console.log("Live scraping:", targetUrl);
+          const pageContent = await scrapeUrl(targetUrl);
+          toolResults.push({
+            role: "tool",
+            tool_call_id: tc.id,
+            content: pageContent,
+          });
+        }
+      }
+
+      // Second call: stream the final answer with tool results
+      const finalMessages = [
+        ...aiMessages,
+        firstResult.message,
+        ...toolResults,
+      ];
+
+      const finalResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-3-flash-preview",
+          messages: finalMessages,
+          stream: true,
+        }),
+      });
+
+      if (!finalResponse.ok) {
+        const t = await finalResponse.text();
+        console.error("AI final call error:", finalResponse.status, t);
+        return new Response(JSON.stringify({ error: "AI service error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      return new Response(finalResponse.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
+    }
+
+    // No tool call — the first call already has the content, re-stream it
+    // Build a synthetic SSE response from the consumed content
+    const contentText = firstResult.message.content || "";
+    const sseData = `data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: contentText, role: "assistant" }, finish_reason: null }] })}\n\ndata: ${JSON.stringify({ choices: [{ index: 0, delta: { content: "" }, finish_reason: "stop" }] })}\n\ndata: [DONE]\n\n`;
+    return new Response(sseData, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
   } catch (e) {
     console.error("chat error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
