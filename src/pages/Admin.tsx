@@ -106,6 +106,11 @@ const Admin = () => {
   const [emSubmitting, setEmSubmitting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Website import
+  const [showWebImport, setShowWebImport] = useState(false);
+  const [webUrl, setWebUrl] = useState("");
+  const [webImporting, setWebImporting] = useState(false);
+
   // Search filters
   const [facultySearch, setFacultySearch] = useState("");
   const [locationSearch, setLocationSearch] = useState("");
