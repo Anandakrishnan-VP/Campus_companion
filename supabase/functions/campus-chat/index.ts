@@ -177,9 +177,54 @@ EMERGENCY CONTACTS:
       },
     ];
 
-    // Initial AI call with tool support (non-streaming to handle tool calls)
-    const aiMessages = [{ role: "system", content: SYSTEM_PROMPT }, ...messages];
+    const aiMessages: any[] = [{ role: "system", content: SYSTEM_PROMPT }, ...messages];
 
+    // Helper: consume an SSE stream and reconstruct the full message
+    async function consumeSSE(response: Response): Promise<any> {
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      let content = "";
+      let toolCalls: any[] = [];
+      let finishReason = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        let idx: number;
+        while ((idx = buf.indexOf("\n")) !== -1) {
+          let line = buf.slice(0, idx);
+          buf = buf.slice(idx + 1);
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (!line.startsWith("data: ")) continue;
+          const json = line.slice(6).trim();
+          if (json === "[DONE]") continue;
+          try {
+            const parsed = JSON.parse(json);
+            const delta = parsed.choices?.[0]?.delta;
+            const fr = parsed.choices?.[0]?.finish_reason;
+            if (fr) finishReason = fr;
+            if (delta?.content) content += delta.content;
+            if (delta?.tool_calls) {
+              for (const tc of delta.tool_calls) {
+                const i = tc.index ?? 0;
+                if (!toolCalls[i]) toolCalls[i] = { id: "", type: "function", function: { name: "", arguments: "" } };
+                if (tc.id) toolCalls[i].id = tc.id;
+                if (tc.function?.name) toolCalls[i].function.name = tc.function.name;
+                if (tc.function?.arguments) toolCalls[i].function.arguments += tc.function.arguments;
+              }
+            }
+          } catch { /* skip partial */ }
+        }
+      }
+
+      const msg: any = { role: "assistant", content: content || null };
+      if (toolCalls.length > 0) msg.tool_calls = toolCalls;
+      return { message: msg, finish_reason: finishReason };
+    }
+
+    // First call: with tools, consumed as SSE to detect tool calls
     const firstResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -190,7 +235,7 @@ EMERGENCY CONTACTS:
         model: "google/gemini-3-flash-preview",
         messages: aiMessages,
         tools,
-        stream: false,
+        stream: true,
       }),
     });
 
@@ -206,12 +251,11 @@ EMERGENCY CONTACTS:
       return new Response(JSON.stringify({ error: "AI service error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const firstData = await firstResponse.json();
-    const choice = firstData.choices?.[0];
+    const firstResult = await consumeSSE(firstResponse);
 
     // Check if AI wants to call a tool
-    if (choice?.finish_reason === "tool_calls" || choice?.message?.tool_calls?.length > 0) {
-      const toolCalls = choice.message.tool_calls;
+    if (firstResult.message.tool_calls?.length > 0) {
+      const toolCalls = firstResult.message.tool_calls;
       const toolResults = [];
 
       for (const tc of toolCalls) {
@@ -242,7 +286,7 @@ EMERGENCY CONTACTS:
       // Second call: stream the final answer with tool results
       const finalMessages = [
         ...aiMessages,
-        choice.message,
+        firstResult.message,
         ...toolResults,
       ];
 
@@ -268,27 +312,11 @@ EMERGENCY CONTACTS:
       return new Response(finalResponse.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
     }
 
-    // No tool call — stream directly. Re-do as streaming call for better UX.
-    const streamResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: aiMessages,
-        stream: true,
-      }),
-    });
-
-    if (!streamResponse.ok) {
-      const t = await streamResponse.text();
-      console.error("AI stream error:", streamResponse.status, t);
-      return new Response(JSON.stringify({ error: "AI service error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    return new Response(streamResponse.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
+    // No tool call — the first call already has the content, re-stream it
+    // Build a synthetic SSE response from the consumed content
+    const contentText = firstResult.message.content || "";
+    const sseData = `data: ${JSON.stringify({ choices: [{ index: 0, delta: { content: contentText, role: "assistant" }, finish_reason: null }] })}\n\ndata: ${JSON.stringify({ choices: [{ index: 0, delta: { content: "" }, finish_reason: "stop" }] })}\n\ndata: [DONE]\n\n`;
+    return new Response(sseData, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
   } catch (e) {
     console.error("chat error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
