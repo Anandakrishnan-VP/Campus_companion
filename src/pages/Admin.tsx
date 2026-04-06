@@ -106,6 +106,11 @@ const Admin = () => {
   const [emSubmitting, setEmSubmitting] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Website import
+  const [showWebImport, setShowWebImport] = useState(false);
+  const [webUrl, setWebUrl] = useState("");
+  const [webImporting, setWebImporting] = useState(false);
+
   // Search filters
   const [facultySearch, setFacultySearch] = useState("");
   const [locationSearch, setLocationSearch] = useState("");
@@ -859,6 +864,46 @@ const Admin = () => {
         {activeTab === "brain" && (
           <Section title="🧠 Brain — College Knowledge Base">
             <p className="text-xs text-muted-foreground mb-4">Add information about the college here. The AI assistant will use this to answer student queries.</p>
+            
+            {/* Website Import */}
+            <AnimatePresence>
+              {showWebImport && (
+                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="glass-card p-4 mb-4 space-y-3">
+                  <label className={labelCls}>Website URL *</label>
+                  <div className="flex gap-2">
+                    <input className={inputCls + " flex-1"} value={webUrl} onChange={e => setWebUrl(e.target.value)} placeholder="https://example.com/about" disabled={webImporting} />
+                    <button
+                      onClick={async () => {
+                        if (!webUrl.trim()) { toast({ title: "Please enter a URL", variant: "destructive" }); return; }
+                        setWebImporting(true);
+                        try {
+                          const { data, error } = await supabase.functions.invoke("scrape-website", { body: { url: webUrl.trim() } });
+                          if (error) throw error;
+                          if (data?.error) { toast({ title: "Import failed", description: data.error, variant: "destructive" }); return; }
+                          const { error: insertErr } = await supabase.from("knowledge_base").insert({
+                            category: "Website Import",
+                            title: data.title || webUrl.trim(),
+                            content: data.content + `\n\n[Source: ${data.source_url}]`,
+                          });
+                          if (insertErr) { toast({ title: "Error saving", description: insertErr.message, variant: "destructive" }); return; }
+                          toast({ title: "Website imported to Brain!" });
+                          setWebUrl(""); setShowWebImport(false); refetchKB();
+                          scrollToRef(brainListRef);
+                        } catch (e: any) {
+                          toast({ title: "Import failed", description: e.message || "Unknown error", variant: "destructive" });
+                        } finally { setWebImporting(false); }
+                      }}
+                      disabled={webImporting}
+                      className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-display font-semibold disabled:opacity-50 whitespace-nowrap"
+                    >
+                      {webImporting ? "Importing..." : "Scrape & Import"}
+                    </button>
+                  </div>
+                  <button onClick={() => { setShowWebImport(false); setWebUrl(""); }} className="text-xs text-muted-foreground hover:text-foreground">Cancel</button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {showBrainForm && (
               <motion.div ref={brainFormRef} initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="glass-card p-4 mb-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
@@ -892,7 +937,10 @@ const Admin = () => {
                   <button onClick={() => deleteKBEntry(kb.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20"><Trash2 className="w-4 h-4" /></button>
                 </div>
               ))}
-              {!showBrainForm && <AddButton label="Add Knowledge" onClick={() => { setShowBrainForm(true); scrollToRef(brainFormRef); }} />}
+              <div className="flex gap-2">
+                {!showBrainForm && <AddButton label="Add Knowledge" onClick={() => { setShowBrainForm(true); scrollToRef(brainFormRef); }} />}
+                {!showWebImport && <button onClick={() => setShowWebImport(true)} className="flex items-center gap-2 w-full justify-center py-3 rounded-xl border-2 border-dashed border-muted-foreground/30 text-muted-foreground hover:border-primary/40 hover:text-primary transition font-display text-sm"><Upload className="w-4 h-4" /> Import from Website</button>}
+              </div>
             </div>
           </Section>
         )}
