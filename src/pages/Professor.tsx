@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 
 const Professor = () => {
   const { user, loading: authLoading, signOut, facultyId } = useAuth("professor");
+  const { tenantId } = useTenant();
   const [activeTab, setActiveTab] = useState<"attendance" | "timetable" | "profile" | "notifications">("attendance");
   const [todayStatus, setTodayStatus] = useState<string | null>(null);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
