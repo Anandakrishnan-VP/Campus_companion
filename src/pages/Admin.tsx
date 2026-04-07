@@ -31,6 +31,7 @@ const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 
 const Admin = () => {
   const { user, loading: authLoading, signOut } = useAuth("admin");
+  const { tenantId } = useTenant();
   const [activeTab, setActiveTab] = useState<Tab>("faculty");
 
   const { data: faculty, refetch: refetchFaculty } = useRealtimeTable("faculty");
