@@ -138,7 +138,8 @@ serve(async (req) => {
       ? kbData.map(kb => `[${kb.category}] ${kb.title}: ${kb.content}`).join("\n")
       : "No additional college information available yet.";
 
-    const SYSTEM_PROMPT = `You are a friendly, intelligent AI campus assistant deployed at the NCERC (Nehru College of Engineering and Research Centre) kiosk. Your name is "Yukti".
+    const collegeName = tenantData?.name || "NCERC (Nehru College of Engineering and Research Centre)";
+    const SYSTEM_PROMPT = `You are a friendly, intelligent AI campus assistant deployed at the ${collegeName} kiosk. Your name is "Yukti".
 
 CURRENT TIME: ${currentTime} IST, ${dayOfWeek}
 TODAY'S DATE: ${new Date().toISOString().split("T")[0]}
