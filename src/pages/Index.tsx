@@ -18,12 +18,8 @@ async function streamChat({
   messages,
   onDelta,
   onDone,
-  onError
-
-
-
-
-
+  onError,
+  tenantId
 }: {messages: {role: string;content: string;}[];onDelta: (text: string) => void;onDone: () => void;onError: (msg: string) => void;tenantId?: string | null;}) {
   const resp = await fetch(CHAT_URL, {
     method: "POST",
