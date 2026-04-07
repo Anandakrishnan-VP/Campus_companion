@@ -23,6 +23,7 @@ const Login = () => {
           .select("role")
           .eq("user_id", session.user.id);
         const role = roles?.[0]?.role;
+        if (role === "super_admin") { navigate("/super-admin", { replace: true }); return; }
         if (role === "admin") { navigate("/admin", { replace: true }); return; }
         if (role === "professor") { navigate("/professor", { replace: true }); return; }
       }
@@ -62,7 +63,7 @@ const Login = () => {
       }
 
       const role = roles[0].role;
-      navigate(role === "admin" ? "/admin" : "/professor");
+      navigate(role === "super_admin" ? "/super-admin" : role === "admin" ? "/admin" : "/professor");
     } catch (err: any) {
       toast({ title: "Login Failed", description: "Invalid ID or password.", variant: "destructive" });
     }

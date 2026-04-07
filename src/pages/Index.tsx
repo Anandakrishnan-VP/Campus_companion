@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Settings, MessageSquareWarning } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useTenant } from "@/contexts/TenantContext";
 import NotificationPanel from "@/components/kiosk/NotificationPanel";
 const Avatar3D = lazy(() => import("@/components/kiosk/Avatar3D"));
 import ChatInterface, { type ChatMessage, type ChatInterfaceHandle } from "@/components/kiosk/ChatInterface";
@@ -18,20 +19,16 @@ async function streamChat({
   messages,
   onDelta,
   onDone,
-  onError
-
-
-
-
-
-}: {messages: {role: string;content: string;}[];onDelta: (text: string) => void;onDone: () => void;onError: (msg: string) => void;}) {
+  onError,
+  tenantId
+}: {messages: {role: string;content: string;}[];onDelta: (text: string) => void;onDone: () => void;onError: (msg: string) => void;tenantId?: string | null;}) {
   const resp = await fetch(CHAT_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
     },
-    body: JSON.stringify({ messages })
+    body: JSON.stringify({ messages, tenant_id: tenantId })
   });
 
   if (!resp.ok || !resp.body) {
@@ -74,6 +71,7 @@ async function streamChat({
 
 const Index = () => {
   const navigate = useNavigate();
+  const { tenantId, tenant } = useTenant();
 
   // Redirect logged-in staff to their dashboard
   useEffect(() => {
@@ -142,6 +140,7 @@ const Index = () => {
       try {
         await streamChat({
           messages: conversationRef.current,
+          tenantId,
           onDelta: (chunk) => {
             if (isThinking) setIsThinking(false);
             upsertAssistant(chunk);

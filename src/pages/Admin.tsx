@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useTenant } from "@/contexts/TenantContext";
 import IssuesManager from "@/components/admin/IssuesManager";
 import CsvImporter, { FACULTY_CSV_FIELDS, LOCATION_CSV_FIELDS } from "@/components/admin/CsvImporter";
 
@@ -30,6 +31,7 @@ const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
 
 const Admin = () => {
   const { user, loading: authLoading, signOut } = useAuth("admin");
+  const { tenantId } = useTenant();
   const [activeTab, setActiveTab] = useState<Tab>("faculty");
 
   const { data: faculty, refetch: refetchFaculty } = useRealtimeTable("faculty");
@@ -175,7 +177,7 @@ const Admin = () => {
     if (!kbTitle.trim() || !kbContent.trim()) { toast({ title: "Title and content required", variant: "destructive" }); return; }
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("knowledge_base").insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim() });
+      const { error } = await supabase.from("knowledge_base").insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim(), tenant_id: tenantId! });
       if (error) { toast({ title: "Error saving knowledge entry", description: error.message, variant: "destructive" }); return; }
       setShowBrainForm(false); setKbTitle(""); setKbContent(""); setKbCategory("General"); refetchKB();
       toast({ title: "Knowledge added to Brain" });
@@ -233,7 +235,7 @@ const Admin = () => {
     if (!fName.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
     setSubmitting(true);
     try {
-    const payload = { name: fName.trim(), aliases: fAliases, department: fDept, office_location: fOffice, phone: fPhone };
+    const payload = { name: fName.trim(), aliases: fAliases, department: fDept, office_location: fOffice, phone: fPhone, tenant_id: tenantId! };
     if (editingId) {
       await supabase.from("faculty").update(payload).eq("id", editingId);
       resetFacultyForm();
@@ -247,7 +249,7 @@ const Admin = () => {
       // Insert schedule slots
       if (scheduleSlots.length > 0) {
         await supabase.from("timetable").insert(
-          scheduleSlots.map(s => ({ ...s, faculty_id: newFac.id }))
+          scheduleSlots.map(s => ({ ...s, faculty_id: newFac.id, tenant_id: tenantId! }))
         );
         refetchTimetable();
       }
@@ -305,7 +307,7 @@ const Admin = () => {
   };
 
   const addNewSlotToFaculty = async (facultyId: string) => {
-    await supabase.from("timetable").insert({ faculty_id: facultyId, day_of_week: nsDay, start_time: nsStart, end_time: nsEnd, subject: "", room: nsRoom });
+    await supabase.from("timetable").insert({ faculty_id: facultyId, day_of_week: nsDay, start_time: nsStart, end_time: nsEnd, subject: "", room: nsRoom, tenant_id: tenantId! });
     setAddingSlotFor(null); setNsRoom("");
     refetchTimetable();
     toast({ title: "Slot added" });
@@ -317,7 +319,7 @@ const Admin = () => {
     if (!eName.trim() || !eDate) { toast({ title: "Title and date required", variant: "destructive" }); return; }
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("events").insert({ title: eName, description: eDesc, location: eVenue, event_date: eDate, start_time: eStart || null, end_time: eEnd || null });
+      const { error } = await supabase.from("events").insert({ title: eName, description: eDesc, location: eVenue, event_date: eDate, start_time: eStart || null, end_time: eEnd || null, tenant_id: tenantId! });
       if (error) { toast({ title: "Error saving event", description: error.message, variant: "destructive" }); return; }
       setShowEventForm(false); setEName(""); setEDesc(""); setEVenue(""); setEDate(""); setEStart(""); setEEnd(""); refetchEvents();
       toast({ title: "Event added" });
@@ -336,7 +338,7 @@ const Admin = () => {
     if (!lName.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("locations").insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections });
+      const { error } = await supabase.from("locations").insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections, tenant_id: tenantId! });
       if (error) { toast({ title: "Error saving location", description: error.message, variant: "destructive" }); return; }
       setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); setLDirections(""); refetchLocations();
       toast({ title: "Location added" });
@@ -357,7 +359,7 @@ const Admin = () => {
     if (!deptName.trim()) { toast({ title: "Department name required", variant: "destructive" }); return; }
     setSubmitting(true);
     try {
-      const payload = { name: deptName.trim(), hod_name: deptHod.trim(), description: deptDesc.trim() };
+      const payload = { name: deptName.trim(), hod_name: deptHod.trim(), description: deptDesc.trim(), tenant_id: tenantId! };
       if (editingDeptId) {
         const { error } = await supabase.from("departments").update(payload).eq("id", editingDeptId);
         if (error) { toast({ title: "Error updating department", description: error.message, variant: "destructive" }); return; }
@@ -884,6 +886,7 @@ const Admin = () => {
                             category: "Website Import",
                             title: data.title || webUrl.trim(),
                             content: data.content + `\n\n[Source: ${data.source_url}]`,
+                            tenant_id: tenantId!,
                           });
                           if (insertErr) { toast({ title: "Error saving", description: insertErr.message, variant: "destructive" }); return; }
                           toast({ title: "Website imported to Brain!" });
@@ -1010,7 +1013,7 @@ const Admin = () => {
                           // Fetch current max sort_order directly from DB to avoid stale state
                           const { data: existing } = await (supabase.from("emergency_contacts") as any).select("sort_order").order("sort_order", { ascending: false }).limit(1);
                           const maxOrder = existing?.[0]?.sort_order ?? -1;
-                          const { error } = await (supabase.from("emergency_contacts") as any).insert({ label: emLabel.trim(), value: emValue.trim(), type: emType, sort_order: maxOrder + 1 });
+                          const { error } = await (supabase.from("emergency_contacts") as any).insert({ label: emLabel.trim(), value: emValue.trim(), type: emType, sort_order: maxOrder + 1, tenant_id: tenantId! });
                           if (error) throw error;
                         }
                         setShowEmergencyForm(false); setEditingEmId(null); setEmLabel(""); setEmValue(""); setEmType("phone");

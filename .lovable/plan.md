@@ -1,46 +1,96 @@
+# Multi-Tenant SaaS Transformation
 
+## Overview
+Convert the current single-college campus AI kiosk into a multi-tenant SaaS platform. Each college gets its own isolated environment with a unique subdomain.
 
-# Website Import for Knowledge Base
+## Phase 1: Database Schema (Tenant Foundation)
 
-## What
-Add a feature in the Admin "Brain" section where the admin can paste a website URL, scrape its content, and store it in the existing `knowledge_base` table. The campus chat AI (Yukti) already reads from `knowledge_base` in its system prompt, so scraped content will automatically be available for answering queries.
+### New Tables
+- **`tenants`** — id, name, slug (subdomain), logo_url, website_url, primary_color, created_at, status (active/suspended/trial)
+- **`tenant_memberships`** — links users to tenants with a role (tenant_admin, professor)
 
-## How It Works
+### Modify Existing Tables
+Add a `tenant_id` column (UUID, NOT NULL, FK → tenants) to ALL data tables:
+- faculty, timetable, events, locations, attendance, notifications, knowledge_base, departments, emergency_contacts, student_issues, issue_votes
 
-The pipeline is simple: Admin pastes URL → Edge function scrapes content → Content saved to `knowledge_base` → Yukti can answer questions from it.
+### New Enum
+- Expand `app_role` to include `super_admin` OR create a separate `is_super_admin` flag on profiles
 
-No new tables needed. The existing `knowledge_base` table (with `title`, `content`, `category` columns) is a perfect fit.
+### RLS Policies
+- Update ALL existing RLS policies to scope data by tenant
+- Create a helper function `get_user_tenant_id()` that returns the tenant_id for the current user
+- Tenants can only see their own data
 
-## Implementation
+## Phase 2: Super Admin
 
-### 1. Create edge function `scrape-website`
-**File: `supabase/functions/scrape-website/index.ts`**
+### New Role: `super_admin`
+- Add to `app_role` enum
+- Can view/manage all tenants, suspend accounts, view platform analytics
+- New super admin dashboard at `/super-admin`
 
-- Accepts `{ url: string }` in the request body
-- Uses the Lovable AI gateway (Gemini 3 Flash) to summarize/extract the key information from the fetched content (since raw HTML can be huge and noisy)
-- Fetches the website using `fetch()` in Deno, extracts text content
-- Returns `{ title, content }` to the client
+### Super Admin Dashboard Features
+- List all tenants with status, user count, creation date
+- Create/suspend/activate tenants
+- View platform-wide analytics (total users, total queries, etc.)
+- Impersonate tenant admin for support
 
-### 2. Add URL import UI in Admin Brain section
-**File: `src/pages/Admin.tsx`**
+## Phase 3: Self-Service College Onboarding
 
-- Add a "Import from Website" button next to "Add to Brain"
-- Shows an input field for the URL and a "Scrape & Import" button
-- On submit, calls the edge function, then inserts the result into `knowledge_base` with category "Website Import"
-- Shows loading state and success/error toast
+### Public Registration Flow (`/register`)
+- College name, admin name, email, password
+- Auto-generate slug from college name (e.g., "NCERC" → `ncerc`)
+- Create tenant record + admin user + assign tenant_admin role
+- Email verification required
 
-### 3. Update `supabase/config.toml`
-Add the new function config with `verify_jwt = false`.
+### Post-Registration Setup Wizard
+- Upload college logo
+- Set college website URL (for Brain scraping)
+- Import initial data (faculty CSV, etc.)
 
-## Technical Details
+## Phase 4: Subdomain-Based Tenant Resolution
 
-- **No Firecrawl needed** — we use Deno's built-in `fetch()` to get the page HTML, then parse text content server-side. For most college/institutional websites this is sufficient.
-- If the content is too large for the knowledge_base, the AI summarization step will condense it to the most relevant information.
-- The admin can edit/delete imported entries just like any other Brain entry.
-- The `campus-chat` function already includes all `knowledge_base` rows in its system prompt, so no changes needed there.
+### How It Works
+- Each tenant gets `{slug}.ncercai.lovable.app` (or custom domain later)
+- App detects tenant from subdomain on load
+- React context provides current tenant to all components
+- Kiosk landing page shows tenant-specific branding
 
-## Files Modified
-- `src/pages/Admin.tsx` — Add URL import UI
-- `supabase/functions/scrape-website/index.ts` — New edge function
-- `supabase/config.toml` — Register new function
+### Technical Approach
+- `TenantProvider` context wrapping the app
+- `useTenant()` hook for accessing current tenant info
+- Tenant resolution: parse `window.location.hostname` → lookup tenant by slug
+- Fallback: `/select-college` page if no subdomain match
 
+## Phase 5: Code Refactoring
+
+### All Data Operations
+- Every Supabase query adds `.eq("tenant_id", currentTenantId)`
+- Insert operations include `tenant_id` automatically
+- `useRealtimeTable` hook gets tenant_id filter
+
+### Branding
+- Kiosk UI adapts colors/logo based on tenant settings
+- Chat AI system prompt includes tenant name and context
+
+### Auth Flow
+- Login page is tenant-aware (shows college name/logo)
+- Role checks include tenant membership verification
+
+## Phase 6: Edge Functions
+- `campus-chat`: filter knowledge_base by tenant_id
+- `scrape-website`: associate scraped content with tenant
+- `create-professor`: scope to tenant
+- `setup-admin`: becomes tenant setup function
+
+## Migration Strategy
+- Existing data gets assigned to a "default" tenant (NCERC)
+- Existing admin user becomes both super_admin and NCERC tenant_admin
+- No data loss during migration
+
+## Files Modified/Created
+- **Database**: ~5 migrations (new tables, alter existing, RLS updates)
+- **New**: TenantProvider, useTenant hook, RegisterPage, SuperAdminDashboard, TenantSetupWizard
+- **Modified**: Admin.tsx, Professor.tsx, Index.tsx, Login.tsx, App.tsx, all edge functions, useRealtimeTable, useAuth
+
+## Estimated Scope
+This is a large change spanning 6 phases. I recommend implementing phase by phase with testing between each.

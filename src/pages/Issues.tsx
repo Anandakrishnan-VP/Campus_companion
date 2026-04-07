@@ -4,6 +4,7 @@ import { ArrowLeft, ThumbsUp, ThumbsDown, Plus, X, Send, CheckCircle2, Clock, Al
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useTenant } from "@/contexts/TenantContext";
 
 const CATEGORIES = ["General", "Facilities", "Academics", "Administration", "Hostel", "WiFi", "Transport", "Canteen", "Library", "Other"];
 
@@ -22,6 +23,7 @@ interface Issue { id: string; title: string; description: string; category: stri
 interface Vote { issue_id: string; vote_type: string; }
 
 const Issues = () => {
+  const { tenantId } = useTenant();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,7 +60,7 @@ const Issues = () => {
     if (!title.trim()) { toast({ title: "Title is required", variant: "destructive" }); return; }
     if (!desc.trim()) { toast({ title: "Description is required", variant: "destructive" }); return; }
     setSubmitting(true);
-    const { error } = await supabase.from("student_issues").insert({ title: title.trim(), description: desc.trim(), category, device_id: deviceId } as any);
+    const { error } = await supabase.from("student_issues").insert({ title: title.trim(), description: desc.trim(), category, device_id: deviceId, tenant_id: tenantId! } as any);
     setSubmitting(false);
     if (error) { toast({ title: "Failed to submit", variant: "destructive" }); return; }
     setShowForm(false); setTitle(""); setDesc(""); setCategory("General");

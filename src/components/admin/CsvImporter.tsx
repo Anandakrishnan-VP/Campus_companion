@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Upload, X, AlertTriangle, CheckCircle, Trash2, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useTenant } from "@/contexts/TenantContext";
 
 export interface CsvFieldConfig {
   dbColumn: string;
@@ -68,6 +69,7 @@ interface ParsedRow {
 }
 
 const CsvImporter = ({ table, fields, existingNames, onComplete, onImported, onClose }: CsvImporterProps) => {
+  const { tenantId } = useTenant();
   const fileRef = useRef<HTMLInputElement>(null);
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [importing, setImporting] = useState(false);
@@ -129,7 +131,7 @@ const CsvImporter = ({ table, fields, existingNames, onComplete, onImported, onC
   const duplicateRows = rows.filter(r => r.status === "duplicate");
 
   const handleImport = async () => {
-    const toInsert = validRows.map(r => r.data);
+    const toInsert = validRows.map(r => ({ ...r.data, tenant_id: tenantId! }));
     if (toInsert.length === 0) {
       toast({ title: "No valid rows to import", variant: "destructive" });
       return;

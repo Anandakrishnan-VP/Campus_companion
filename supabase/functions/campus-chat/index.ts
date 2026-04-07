@@ -63,7 +63,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages } = await req.json();
+    const { messages, tenant_id } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -71,14 +71,18 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const [facultyRes, timetableRes, eventsRes, locationsRes, attendanceRes, kbRes, deptsRes] = await Promise.all([
-      supabase.from("faculty").select("*"),
-      supabase.from("timetable").select("*"),
-      supabase.from("events").select("*").gte("event_date", new Date().toISOString().split("T")[0]),
-      supabase.from("locations").select("*"),
-      supabase.from("attendance").select("*").eq("date", new Date().toISOString().split("T")[0]),
-      supabase.from("knowledge_base").select("*"),
-      supabase.from("departments").select("*"),
+    // Build tenant-scoped queries
+    const tenantFilter = (query: any) => tenant_id ? query.eq("tenant_id", tenant_id) : query;
+
+    const [facultyRes, timetableRes, eventsRes, locationsRes, attendanceRes, kbRes, deptsRes, tenantRes] = await Promise.all([
+      tenantFilter(supabase.from("faculty").select("*")),
+      tenantFilter(supabase.from("timetable").select("*")),
+      tenantFilter(supabase.from("events").select("*").gte("event_date", new Date().toISOString().split("T")[0])),
+      tenantFilter(supabase.from("locations").select("*")),
+      tenantFilter(supabase.from("attendance").select("*").eq("date", new Date().toISOString().split("T")[0])),
+      tenantFilter(supabase.from("knowledge_base").select("*")),
+      tenantFilter(supabase.from("departments").select("*")),
+      tenant_id ? supabase.from("tenants").select("*").eq("id", tenant_id).single() : Promise.resolve({ data: null }),
     ]);
 
     const facultyData = facultyRes.data || [];
@@ -88,6 +92,7 @@ serve(async (req) => {
     const attendanceData = attendanceRes.data || [];
     const kbData = kbRes.data || [];
     const deptsData = deptsRes.data || [];
+    const tenantData = tenantRes.data as any;
 
     const dayOfWeek = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"][new Date().getDay()];
     const currentTime = new Date().toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
@@ -133,12 +138,13 @@ serve(async (req) => {
       ? kbData.map(kb => `[${kb.category}] ${kb.title}: ${kb.content}`).join("\n")
       : "No additional college information available yet.";
 
-    const SYSTEM_PROMPT = `You are a friendly, intelligent AI campus assistant deployed at the NCERC (Nehru College of Engineering and Research Centre) kiosk. Your name is "Yukti".
+    const collegeName = tenantData?.name || "NCERC (Nehru College of Engineering and Research Centre)";
+    const SYSTEM_PROMPT = `You are a friendly, intelligent AI campus assistant deployed at the ${collegeName} kiosk. Your name is "Yukti".
 
 CURRENT TIME: ${currentTime} IST, ${dayOfWeek}
 TODAY'S DATE: ${new Date().toISOString().split("T")[0]}
 
-PERSONALITY: Warm, helpful, conversational. Speak naturally. You represent NCERC's Department of CSE(AI & ML).
+PERSONALITY: Warm, helpful, conversational. Speak naturally. You represent ${collegeName}.
 
 RESPONSE LENGTH RULES:
 - For simple factual questions (who, where, when): Keep it concise, 1-3 sentences.

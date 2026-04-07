@@ -4,6 +4,7 @@ import { Bell, Plus, X, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { toast } from "@/hooks/use-toast";
+import { useTenant } from "@/contexts/TenantContext";
 import type { User } from "@supabase/supabase-js";
 
 interface Props {
@@ -12,6 +13,7 @@ interface Props {
 }
 
 const NotificationManager = ({ user, displayName }: Props) => {
+  const { tenantId } = useTenant();
   const { data: notifications, refetch } = useRealtimeTable("notifications" as any);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
@@ -28,6 +30,7 @@ const NotificationManager = ({ user, displayName }: Props) => {
       priority,
       created_by: user.id,
       created_by_name: displayName,
+      tenant_id: tenantId!,
     } as any);
 
     if (error) {

@@ -7,10 +7,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useTenant } from "@/contexts/TenantContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const Professor = () => {
   const { user, loading: authLoading, signOut, facultyId } = useAuth("professor");
+  const { tenantId } = useTenant();
   const [activeTab, setActiveTab] = useState<"attendance" | "timetable" | "profile" | "notifications">("attendance");
   const [todayStatus, setTodayStatus] = useState<string | null>(null);
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
@@ -58,7 +60,7 @@ const Professor = () => {
     if (existing) {
       await supabase.from("attendance").update({ status, note: noteData || "" }).eq("id", existing.id);
     } else {
-      await supabase.from("attendance").insert({ faculty_id: facultyId, date: today, status, note: noteData || "" });
+      await supabase.from("attendance").insert({ faculty_id: facultyId, date: today, status, note: noteData || "", tenant_id: tenantId! });
     }
     await supabase.from("faculty").update({ is_present: status === "present" }).eq("id", facultyId);
     setTodayStatus(status);

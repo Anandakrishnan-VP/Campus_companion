@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
-export type AppRole = "admin" | "professor";
+export type AppRole = "admin" | "professor" | "super_admin";
 
 export function useAuth(requiredRole?: AppRole) {
   const [user, setUser] = useState<User | null>(null);
@@ -25,18 +25,23 @@ export function useAuth(requiredRole?: AppRole) {
 
       setUser(session.user);
 
-      // Fetch role
+      // Fetch role - check for highest role
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", session.user.id);
 
-      const userRole = roles?.[0]?.role as AppRole | undefined;
+      // Prioritize super_admin > admin > professor
+      const roleList = roles?.map(r => r.role as AppRole) || [];
+      const userRole = roleList.includes("super_admin") ? "super_admin" : roleList.includes("admin") ? "admin" : roleList[0] as AppRole | undefined;
       setRole(userRole || null);
 
       if (requiredRole && userRole !== requiredRole) {
-        navigate("/login");
-        return;
+        // Allow super_admin to access admin pages
+        if (!(requiredRole === "admin" && userRole === "super_admin")) {
+          navigate("/login");
+          return;
+        }
       }
 
       // If professor, get their faculty record
@@ -66,12 +71,15 @@ export function useAuth(requiredRole?: AppRole) {
         .select("role")
         .eq("user_id", session.user.id);
 
-      const userRole = roles?.[0]?.role as AppRole | undefined;
+      const roleList2 = roles?.map(r => r.role as AppRole) || [];
+      const userRole = roleList2.includes("super_admin") ? "super_admin" : roleList2.includes("admin") ? "admin" : roleList2[0] as AppRole | undefined;
       setRole(userRole || null);
 
       if (requiredRole && userRole !== requiredRole) {
-        navigate("/login");
-        return;
+        if (!(requiredRole === "admin" && userRole === "super_admin")) {
+          navigate("/login");
+          return;
+        }
       }
 
       if (userRole === "professor") {
