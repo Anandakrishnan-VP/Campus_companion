@@ -24,14 +24,14 @@ async function streamChat({
 
 
 
-}: {messages: {role: string;content: string;}[];onDelta: (text: string) => void;onDone: () => void;onError: (msg: string) => void;}) {
+}: {messages: {role: string;content: string;}[];onDelta: (text: string) => void;onDone: () => void;onError: (msg: string) => void;tenantId?: string | null;}) {
   const resp = await fetch(CHAT_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
     },
-    body: JSON.stringify({ messages })
+    body: JSON.stringify({ messages, tenant_id: tenantId })
   });
 
   if (!resp.ok || !resp.body) {
