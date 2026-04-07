@@ -131,7 +131,7 @@ const CsvImporter = ({ table, fields, existingNames, onComplete, onImported, onC
   const duplicateRows = rows.filter(r => r.status === "duplicate");
 
   const handleImport = async () => {
-    const toInsert = validRows.map(r => r.data);
+    const toInsert = validRows.map(r => ({ ...r.data, tenant_id: tenantId! }));
     if (toInsert.length === 0) {
       toast({ title: "No valid rows to import", variant: "destructive" });
       return;
