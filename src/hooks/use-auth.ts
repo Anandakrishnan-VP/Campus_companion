@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
-export type AppRole = "admin" | "professor";
+export type AppRole = "admin" | "professor" | "super_admin";
 
 export function useAuth(requiredRole?: AppRole) {
   const [user, setUser] = useState<User | null>(null);
