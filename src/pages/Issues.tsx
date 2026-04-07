@@ -58,7 +58,7 @@ const Issues = () => {
     if (!title.trim()) { toast({ title: "Title is required", variant: "destructive" }); return; }
     if (!desc.trim()) { toast({ title: "Description is required", variant: "destructive" }); return; }
     setSubmitting(true);
-    const { error } = await supabase.from("student_issues").insert({ title: title.trim(), description: desc.trim(), category, device_id: deviceId } as any);
+    const { error } = await supabase.from("student_issues").insert({ title: title.trim(), description: desc.trim(), category, device_id: deviceId, tenant_id: localStorage.getItem("selected_tenant_slug") ? undefined : "00000000-0000-0000-0000-000000000001" } as any);
     setSubmitting(false);
     if (error) { toast({ title: "Failed to submit", variant: "destructive" }); return; }
     setShowForm(false); setTitle(""); setDesc(""); setCategory("General");

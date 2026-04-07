@@ -30,6 +30,7 @@ const NotificationManager = ({ user, displayName }: Props) => {
       priority,
       created_by: user.id,
       created_by_name: displayName,
+      tenant_id: tenantId!,
     } as any);
 
     if (error) {
