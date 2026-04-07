@@ -37,8 +37,11 @@ export function useAuth(requiredRole?: AppRole) {
       setRole(userRole || null);
 
       if (requiredRole && userRole !== requiredRole) {
-        navigate("/login");
-        return;
+        // Allow super_admin to access admin pages
+        if (!(requiredRole === "admin" && userRole === "super_admin")) {
+          navigate("/login");
+          return;
+        }
       }
 
       // If professor, get their faculty record
