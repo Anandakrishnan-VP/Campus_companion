@@ -63,7 +63,7 @@ const Login = () => {
       }
 
       const role = roles[0].role;
-      navigate(role === "admin" ? "/admin" : "/professor");
+      navigate(role === "super_admin" ? "/super-admin" : role === "admin" ? "/admin" : "/professor");
     } catch (err: any) {
       toast({ title: "Login Failed", description: "Invalid ID or password.", variant: "destructive" });
     }
