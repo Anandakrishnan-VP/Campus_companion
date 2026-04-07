@@ -23,6 +23,7 @@ interface Props {
 }
 
 const IssuesManager = ({ userId }: Props) => {
+  const { tenantId } = useTenant();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterCat, setFilterCat] = useState("All");
