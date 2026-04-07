@@ -307,7 +307,7 @@ const Admin = () => {
   };
 
   const addNewSlotToFaculty = async (facultyId: string) => {
-    await supabase.from("timetable").insert({ faculty_id: facultyId, day_of_week: nsDay, start_time: nsStart, end_time: nsEnd, subject: "", room: nsRoom });
+    await supabase.from("timetable").insert({ faculty_id: facultyId, day_of_week: nsDay, start_time: nsStart, end_time: nsEnd, subject: "", room: nsRoom, tenant_id: tenantId! });
     setAddingSlotFor(null); setNsRoom("");
     refetchTimetable();
     toast({ title: "Slot added" });
