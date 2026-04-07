@@ -235,7 +235,7 @@ const Admin = () => {
     if (!fName.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
     setSubmitting(true);
     try {
-    const payload = { name: fName.trim(), aliases: fAliases, department: fDept, office_location: fOffice, phone: fPhone };
+    const payload = { name: fName.trim(), aliases: fAliases, department: fDept, office_location: fOffice, phone: fPhone, tenant_id: tenantId! };
     if (editingId) {
       await supabase.from("faculty").update(payload).eq("id", editingId);
       resetFacultyForm();
