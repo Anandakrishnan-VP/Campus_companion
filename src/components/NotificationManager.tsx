@@ -4,6 +4,7 @@ import { Bell, Plus, X, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useRealtimeTable } from "@/hooks/use-realtime-table";
 import { toast } from "@/hooks/use-toast";
+import { useTenant } from "@/contexts/TenantContext";
 import type { User } from "@supabase/supabase-js";
 
 interface Props {
