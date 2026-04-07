@@ -71,12 +71,15 @@ export function useAuth(requiredRole?: AppRole) {
         .select("role")
         .eq("user_id", session.user.id);
 
-      const userRole = roles?.[0]?.role as AppRole | undefined;
+      const roleList2 = roles?.map(r => r.role as AppRole) || [];
+      const userRole = roleList2.includes("super_admin") ? "super_admin" : roleList2.includes("admin") ? "admin" : roleList2[0] as AppRole | undefined;
       setRole(userRole || null);
 
       if (requiredRole && userRole !== requiredRole) {
-        navigate("/login");
-        return;
+        if (!(requiredRole === "admin" && userRole === "super_admin")) {
+          navigate("/login");
+          return;
+        }
       }
 
       if (userRole === "professor") {
