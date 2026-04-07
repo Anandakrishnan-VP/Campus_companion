@@ -13,6 +13,7 @@ interface Props {
 }
 
 const NotificationManager = ({ user, displayName }: Props) => {
+  const { tenantId } = useTenant();
   const { data: notifications, refetch } = useRealtimeTable("notifications" as any);
   const [showForm, setShowForm] = useState(false);
   const [title, setTitle] = useState("");
