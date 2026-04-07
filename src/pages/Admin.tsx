@@ -177,7 +177,7 @@ const Admin = () => {
     if (!kbTitle.trim() || !kbContent.trim()) { toast({ title: "Title and content required", variant: "destructive" }); return; }
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("knowledge_base").insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim() });
+      const { error } = await supabase.from("knowledge_base").insert({ category: kbCategory, title: kbTitle.trim(), content: kbContent.trim(), tenant_id: tenantId! });
       if (error) { toast({ title: "Error saving knowledge entry", description: error.message, variant: "destructive" }); return; }
       setShowBrainForm(false); setKbTitle(""); setKbContent(""); setKbCategory("General"); refetchKB();
       toast({ title: "Knowledge added to Brain" });
