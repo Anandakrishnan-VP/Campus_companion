@@ -23,6 +23,7 @@ const Login = () => {
           .select("role")
           .eq("user_id", session.user.id);
         const role = roles?.[0]?.role;
+        if (role === "super_admin") { navigate("/super-admin", { replace: true }); return; }
         if (role === "admin") { navigate("/admin", { replace: true }); return; }
         if (role === "professor") { navigate("/professor", { replace: true }); return; }
       }
