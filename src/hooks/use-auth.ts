@@ -25,13 +25,15 @@ export function useAuth(requiredRole?: AppRole) {
 
       setUser(session.user);
 
-      // Fetch role
+      // Fetch role - check for highest role
       const { data: roles } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", session.user.id);
 
-      const userRole = roles?.[0]?.role as AppRole | undefined;
+      // Prioritize super_admin > admin > professor
+      const roleList = roles?.map(r => r.role as AppRole) || [];
+      const userRole = roleList.includes("super_admin") ? "super_admin" : roleList.includes("admin") ? "admin" : roleList[0] as AppRole | undefined;
       setRole(userRole || null);
 
       if (requiredRole && userRole !== requiredRole) {
