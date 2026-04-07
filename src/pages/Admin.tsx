@@ -886,6 +886,7 @@ const Admin = () => {
                             category: "Website Import",
                             title: data.title || webUrl.trim(),
                             content: data.content + `\n\n[Source: ${data.source_url}]`,
+                            tenant_id: tenantId!,
                           });
                           if (insertErr) { toast({ title: "Error saving", description: insertErr.message, variant: "destructive" }); return; }
                           toast({ title: "Website imported to Brain!" });

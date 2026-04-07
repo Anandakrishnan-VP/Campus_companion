@@ -60,7 +60,7 @@ const Professor = () => {
     if (existing) {
       await supabase.from("attendance").update({ status, note: noteData || "" }).eq("id", existing.id);
     } else {
-      await supabase.from("attendance").insert({ faculty_id: facultyId, date: today, status, note: noteData || "" });
+      await supabase.from("attendance").insert({ faculty_id: facultyId, date: today, status, note: noteData || "", tenant_id: tenantId! });
     }
     await supabase.from("faculty").update({ is_present: status === "present" }).eq("id", facultyId);
     setTodayStatus(status);

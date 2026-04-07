@@ -59,6 +59,7 @@ const IssuesManager = ({ userId }: Props) => {
       priority: "important",
       created_by: userId,
       created_by_name: "Administration",
+      tenant_id: tenantId!,
     });
 
     toast({ title: "Issue marked as resolved" });
