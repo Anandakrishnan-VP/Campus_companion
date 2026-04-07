@@ -140,6 +140,7 @@ const Index = () => {
       try {
         await streamChat({
           messages: conversationRef.current,
+          tenantId,
           onDelta: (chunk) => {
             if (isThinking) setIsThinking(false);
             upsertAssistant(chunk);
