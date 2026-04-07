@@ -71,6 +71,7 @@ async function streamChat({
 
 const Index = () => {
   const navigate = useNavigate();
+  const { tenantId, tenant } = useTenant();
 
   // Redirect logged-in staff to their dashboard
   useEffect(() => {
