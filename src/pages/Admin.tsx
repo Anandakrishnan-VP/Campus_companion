@@ -359,7 +359,7 @@ const Admin = () => {
     if (!deptName.trim()) { toast({ title: "Department name required", variant: "destructive" }); return; }
     setSubmitting(true);
     try {
-      const payload = { name: deptName.trim(), hod_name: deptHod.trim(), description: deptDesc.trim() };
+      const payload = { name: deptName.trim(), hod_name: deptHod.trim(), description: deptDesc.trim(), tenant_id: tenantId! };
       if (editingDeptId) {
         const { error } = await supabase.from("departments").update(payload).eq("id", editingDeptId);
         if (error) { toast({ title: "Error updating department", description: error.message, variant: "destructive" }); return; }
