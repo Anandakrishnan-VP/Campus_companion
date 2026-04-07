@@ -7,16 +7,39 @@ const corsHeaders = {
 };
 
 function extractText(html: string): string {
-  // Remove script/style/nav/footer tags and their content
-  let text = html.replace(/<(script|style|nav|footer|header|noscript)[^>]*>[\s\S]*?<\/\1>/gi, " ");
+  // Remove script, style, nav, footer, header, noscript, svg, iframe tags
+  let text = html.replace(/<(script|style|nav|footer|header|noscript|svg|iframe|form|button)[^>]*>[\s\S]*?<\/\1>/gi, " ");
+  // Remove HTML comments
+  text = text.replace(/<!--[\s\S]*?-->/g, " ");
   // Remove all HTML tags
   text = text.replace(/<[^>]+>/g, " ");
-  // Decode common HTML entities
+  // Decode HTML entities
   text = text.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ");
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/&rsquo;/g, "'").replace(/&lsquo;/g, "'").replace(/&rdquo;/g, '"')
+    .replace(/&ldquo;/g, '"').replace(/&ndash;/g, "–").replace(/&mdash;/g, "—")
+    .replace(/&bull;/g, "•").replace(/&hellip;/g, "...").replace(/&copy;/g, "©")
+    .replace(/&reg;/g, "®").replace(/&trade;/g, "™").replace(/&#\d+;/g, " ");
+  // Remove asset URLs but keep useful ones
+  text = text.replace(/https?:\/\/[^\s)]+/g, (match) => {
+    if (/\.(js|css|png|jpg|jpeg|gif|svg|woff|ttf|ico|webp)/i.test(match)) return " ";
+    return match;
+  });
+  // Remove CSS/JS residue
+  text = text.replace(/\{[^}]*\}/g, " ");
+  text = text.replace(/var\s+\w+\s*=/g, " ");
+  text = text.replace(/function\s*\([^)]*\)/g, " ");
+  // Remove unicode control characters
+  text = text.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, "");
+  // Remove repeated special characters
+  text = text.replace(/([|*_~=#>\\/<])\1{2,}/g, " ");
+  // Remove standalone special chars
+  text = text.replace(/\s[|•*►▶→←↑↓■□▪▫◆◇○●]\s/g, " ");
   // Collapse whitespace
   text = text.replace(/\s+/g, " ").trim();
-  return text;
+  // Remove single-char noise tokens
+  text = text.replace(/\s+[^\w\s@+.]\s+/g, " ");
+  return text.trim();
 }
 
 serve(async (req) => {

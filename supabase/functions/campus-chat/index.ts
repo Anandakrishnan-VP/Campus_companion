@@ -8,12 +8,40 @@ const corsHeaders = {
 };
 
 function extractText(html: string): string {
-  let text = html.replace(/<(script|style|nav|footer|header|noscript)[^>]*>[\s\S]*?<\/\1>/gi, " ");
+  // Remove script, style, nav, footer, header, noscript, svg, iframe tags
+  let text = html.replace(/<(script|style|nav|footer|header|noscript|svg|iframe|form|button)[^>]*>[\s\S]*?<\/\1>/gi, " ");
+  // Remove HTML comments
+  text = text.replace(/<!--[\s\S]*?-->/g, " ");
+  // Remove all HTML tags
   text = text.replace(/<[^>]+>/g, " ");
+  // Decode HTML entities
   text = text.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ");
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, " ")
+    .replace(/&rsquo;/g, "'").replace(/&lsquo;/g, "'").replace(/&rdquo;/g, '"')
+    .replace(/&ldquo;/g, '"').replace(/&ndash;/g, "–").replace(/&mdash;/g, "—")
+    .replace(/&bull;/g, "•").replace(/&hellip;/g, "...").replace(/&copy;/g, "©")
+    .replace(/&reg;/g, "®").replace(/&trade;/g, "™").replace(/&#\d+;/g, " ");
+  // Remove URLs, emails kept
+  text = text.replace(/https?:\/\/[^\s)]+/g, (match) => {
+    // Keep URLs that look useful (not tracking/asset URLs)
+    if (/\.(js|css|png|jpg|jpeg|gif|svg|woff|ttf|ico|webp)/i.test(match)) return " ";
+    return match;
+  });
+  // Remove common junk patterns: cookie notices, JS fragments, CSS residue
+  text = text.replace(/\{[^}]*\}/g, " "); // CSS/JS object literals
+  text = text.replace(/var\s+\w+\s*=/g, " "); // JS variable declarations
+  text = text.replace(/function\s*\([^)]*\)/g, " "); // JS functions
+  // Remove unicode control characters and weird symbols
+  text = text.replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200D\uFEFF]/g, "");
+  // Remove repeated special characters (e.g. |||, ***, ---)
+  text = text.replace(/([|*_~=#>\\/<])\1{2,}/g, " ");
+  // Remove standalone special chars that aren't meaningful
+  text = text.replace(/\s[|•*►▶→←↑↓■□▪▫◆◇○●]\s/g, " ");
+  // Collapse whitespace
   text = text.replace(/\s+/g, " ").trim();
-  return text;
+  // Remove very short noise tokens (single chars that aren't meaningful)
+  text = text.replace(/\s+[^\w\s@+.]\s+/g, " ");
+  return text.trim();
 }
 
 async function scrapeUrl(url: string): Promise<string> {
