@@ -1013,7 +1013,7 @@ const Admin = () => {
                           // Fetch current max sort_order directly from DB to avoid stale state
                           const { data: existing } = await (supabase.from("emergency_contacts") as any).select("sort_order").order("sort_order", { ascending: false }).limit(1);
                           const maxOrder = existing?.[0]?.sort_order ?? -1;
-                          const { error } = await (supabase.from("emergency_contacts") as any).insert({ label: emLabel.trim(), value: emValue.trim(), type: emType, sort_order: maxOrder + 1 });
+                          const { error } = await (supabase.from("emergency_contacts") as any).insert({ label: emLabel.trim(), value: emValue.trim(), type: emType, sort_order: maxOrder + 1, tenant_id: tenantId! });
                           if (error) throw error;
                         }
                         setShowEmergencyForm(false); setEditingEmId(null); setEmLabel(""); setEmValue(""); setEmType("phone");
