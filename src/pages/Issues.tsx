@@ -23,6 +23,7 @@ interface Issue { id: string; title: string; description: string; category: stri
 interface Vote { issue_id: string; vote_type: string; }
 
 const Issues = () => {
+  const { tenantId } = useTenant();
   const [issues, setIssues] = useState<Issue[]>([]);
   const [votes, setVotes] = useState<Vote[]>([]);
   const [loading, setLoading] = useState(true);
