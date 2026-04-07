@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Trash2, Filter, AlertTriangle, ThumbsUp, ThumbsDown, Clock, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useTenant } from "@/contexts/TenantContext";
 
 const CATEGORIES = ["All", "General", "Facilities", "Academics", "Administration", "Hostel", "WiFi", "Transport", "Canteen", "Library", "Other"];
 
