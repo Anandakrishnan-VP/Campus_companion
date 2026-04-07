@@ -319,7 +319,7 @@ const Admin = () => {
     if (!eName.trim() || !eDate) { toast({ title: "Title and date required", variant: "destructive" }); return; }
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("events").insert({ title: eName, description: eDesc, location: eVenue, event_date: eDate, start_time: eStart || null, end_time: eEnd || null });
+      const { error } = await supabase.from("events").insert({ title: eName, description: eDesc, location: eVenue, event_date: eDate, start_time: eStart || null, end_time: eEnd || null, tenant_id: tenantId! });
       if (error) { toast({ title: "Error saving event", description: error.message, variant: "destructive" }); return; }
       setShowEventForm(false); setEName(""); setEDesc(""); setEVenue(""); setEDate(""); setEStart(""); setEEnd(""); refetchEvents();
       toast({ title: "Event added" });
