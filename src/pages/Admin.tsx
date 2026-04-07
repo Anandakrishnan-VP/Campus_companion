@@ -338,7 +338,7 @@ const Admin = () => {
     if (!lName.trim()) { toast({ title: "Name required", variant: "destructive" }); return; }
     setSubmitting(true);
     try {
-      const { error } = await supabase.from("locations").insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections });
+      const { error } = await supabase.from("locations").insert({ name: lName, type: lType, floor: lFloor, block: lBlock, description: lDesc, nearby_landmarks: lLandmarks, directions: lDirections, tenant_id: tenantId! });
       if (error) { toast({ title: "Error saving location", description: error.message, variant: "destructive" }); return; }
       setShowLocationForm(false); setLName(""); setLType("Room"); setLFloor(""); setLBlock(""); setLDesc(""); setLLandmarks(""); setLDirections(""); refetchLocations();
       toast({ title: "Location added" });
