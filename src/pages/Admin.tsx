@@ -249,7 +249,7 @@ const Admin = () => {
       // Insert schedule slots
       if (scheduleSlots.length > 0) {
         await supabase.from("timetable").insert(
-          scheduleSlots.map(s => ({ ...s, faculty_id: newFac.id }))
+          scheduleSlots.map(s => ({ ...s, faculty_id: newFac.id, tenant_id: tenantId! }))
         );
         refetchTimetable();
       }
