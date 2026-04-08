@@ -27,6 +27,7 @@ const TenantContext = createContext<TenantContextType>({
   loading: true,
   error: null,
   allTenants: [],
+  isPlatformHome: false,
   setTenantBySlug: () => {},
 });
 
