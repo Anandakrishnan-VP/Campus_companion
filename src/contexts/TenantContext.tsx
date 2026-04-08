@@ -99,6 +99,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       loading,
       error,
       allTenants,
+      isPlatformHome: !tenant && !loading,
       setTenantBySlug,
     }}>
       {children}
