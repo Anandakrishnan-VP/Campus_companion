@@ -111,7 +111,7 @@ const Index = () => {
     setMessages([{
       id: "welcome",
       role: "assistant",
-      content: "Hello! I'm Yukti, your NCERC AI Assistant. I can help you find faculty, navigate the campus, check events, and more. How can I help you today?"
+      content: `Hello! I'm your ${collegeName} AI Assistant. I can help you find faculty, navigate the campus, check events, and more. How can I help you today?`
     }]);
   }, [speech]);
 
