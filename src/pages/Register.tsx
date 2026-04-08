@@ -7,6 +7,7 @@ import { toast } from "@/hooks/use-toast";
 
 const Register = () => {
   const [collegeName, setCollegeName] = useState("");
+  const [abbreviation, setAbbreviation] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [adminName, setAdminName] = useState("");
   const [email, setEmail] = useState("");
@@ -14,19 +15,20 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const generateSlug = (name: string) =>
-    name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 30);
-
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!collegeName.trim() || !email.trim() || !password.trim()) return;
+    if (!collegeName.trim() || !abbreviation.trim() || !email.trim() || !password.trim()) return;
+    if (!/^[a-z0-9]+$/.test(abbreviation)) {
+      toast({ title: "Invalid abbreviation", description: "Use only lowercase letters and numbers", variant: "destructive" });
+      return;
+    }
     setLoading(true);
 
     try {
       const { data, error } = await supabase.functions.invoke("register-tenant", {
         body: {
           college_name: collegeName.trim(),
-          slug: generateSlug(collegeName),
+          abbreviation: abbreviation.trim().toLowerCase(),
           website_url: websiteUrl.trim(),
           admin_name: adminName.trim(),
           email: email.trim(),
@@ -37,8 +39,8 @@ const Register = () => {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      toast({ title: "🎉 Registration successful!", description: "Please log in with your credentials." });
-      navigate("/login");
+      toast({ title: "🎉 Registration submitted!", description: "Your request has been sent for approval. You'll be able to log in once approved by the platform admin." });
+      navigate("/");
     } catch (err: any) {
       toast({ title: "Registration failed", description: err.message || "Please try again", variant: "destructive" });
     }
@@ -64,13 +66,22 @@ const Register = () => {
               <Building2 className="w-6 h-6 text-primary" />
             </div>
             <h1 className="text-xl font-display font-bold text-foreground">Register Your College</h1>
-            <p className="text-xs text-muted-foreground text-center">Set up a campus AI kiosk for your institution</p>
+            <p className="text-xs text-muted-foreground text-center">Set up a campus AI kiosk — requires admin approval</p>
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
               <label className="text-xs font-display text-muted-foreground mb-1 block">College Name *</label>
               <input className={inputCls} value={collegeName} onChange={e => setCollegeName(e.target.value)} placeholder="e.g. ABC Engineering College" required />
+            </div>
+            <div>
+              <label className="text-xs font-display text-muted-foreground mb-1 block">Abbreviation * <span className="text-muted-foreground/60">(used for subdomain)</span></label>
+              <input className={inputCls} value={abbreviation} onChange={e => setAbbreviation(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ""))} placeholder="e.g. ncerc, abc" required maxLength={20} minLength={2} />
+              {abbreviation && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Your kiosk will be at: <span className="text-primary font-medium">{abbreviation}.clgai.lovable.app</span>
+                </p>
+              )}
             </div>
             <div>
               <label className="text-xs font-display text-muted-foreground mb-1 block">College Website</label>
@@ -89,16 +100,12 @@ const Register = () => {
               <input type="password" className={inputCls} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
             </div>
 
-            {collegeName && (
-              <div className="bg-muted/30 rounded-lg p-3 text-xs text-muted-foreground">
-                Your kiosk URL will be: <span className="text-primary font-medium">{generateSlug(collegeName)}.yourdomain.com</span>
-              </div>
-            )}
-
             <button type="submit" disabled={loading}
               className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-display font-semibold text-sm disabled:opacity-50 transition-opacity">
-              {loading ? "Creating..." : "Register College"}
+              {loading ? "Submitting..." : "Submit Registration"}
             </button>
+
+            <p className="text-[11px] text-muted-foreground text-center">After submission, the platform admin will review and approve your request.</p>
           </form>
         </div>
       </motion.div>

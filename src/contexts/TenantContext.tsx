@@ -79,7 +79,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
         const slug = resolveSlugFromHostname() || localStorage.getItem("selected_tenant_slug");
         
         if (slug) {
-          const found = tenants.find(t => t.slug === slug);
+          const found = tenants.find(t => t.slug === slug || (t as any).abbreviation === slug);
           if (found) {
             setTenant(found);
           }
