@@ -95,7 +95,6 @@ const Index = () => {
     content: `Hello! I'm your ${collegeName} AI Assistant. I can help you find faculty, navigate the campus, check events, and more. How can I help you today?`
   }]
   );
-  );
   const [isLoading, setIsLoading] = useState(false);
   const [isThinking, setIsThinking] = useState(false);
   const [showFacultyDir, setShowFacultyDir] = useState(false);
