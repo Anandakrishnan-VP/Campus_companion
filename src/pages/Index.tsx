@@ -212,12 +212,12 @@ const Index = () => {
 
       <header className="relative z-10 flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-3">
-          <img src={ncercLogo} alt="NCERC Logo" className="w-10 h-10 rounded-full object-cover" />
+           <img src={tenant?.logo_url || ncercLogo} alt={`${tenant?.name || 'Campus'} Logo`} className="w-10 h-10 rounded-full object-cover" />
           <div>
             <h1 className="text-xl font-display font-bold text-foreground tracking-tight">
-              NCERC <span className="text-primary glow-text">AI</span>
+              {tenant?.name || 'Campus'} <span className="text-primary glow-text">AI</span>
             </h1>
-            <p className="text-xs text-white">Department of CSE(AI & ML)</p>
+            <p className="text-xs text-white">AI Campus Assistant</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
