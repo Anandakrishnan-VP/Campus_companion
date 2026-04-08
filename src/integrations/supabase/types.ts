@@ -492,6 +492,7 @@ export type Database = {
       }
       tenants: {
         Row: {
+          abbreviation: string | null
           created_at: string
           id: string
           logo_url: string | null
@@ -503,6 +504,7 @@ export type Database = {
           website_url: string | null
         }
         Insert: {
+          abbreviation?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -514,6 +516,7 @@ export type Database = {
           website_url?: string | null
         }
         Update: {
+          abbreviation?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
