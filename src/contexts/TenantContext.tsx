@@ -82,15 +82,9 @@ export function TenantProvider({ children }: { children: ReactNode }) {
           const found = tenants.find(t => t.slug === slug);
           if (found) {
             setTenant(found);
-          } else if (tenants.length === 1) {
-            // Fallback to only tenant
-            setTenant(tenants[0]);
           }
-        } else if (tenants.length === 1) {
-          // Single tenant mode - auto-select
-          setTenant(tenants[0]);
         }
-        // If multiple tenants and no slug, tenant stays null (show selector)
+        // No auto-select — if no slug resolved, tenant stays null (platform home)
       } catch (e) {
         setError("Failed to load tenant");
       }
