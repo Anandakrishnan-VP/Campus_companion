@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useKioskNotifications } from "@/hooks/use-kiosk-notifications";
 import { TenantProvider } from "@/contexts/TenantContext";
+import Landing from "./pages/Landing";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Admin from "./pages/Admin";
@@ -14,6 +15,14 @@ import Register from "./pages/Register";
 import SuperAdmin from "./pages/SuperAdmin";
 import SelectTenant from "./pages/SelectTenant";
 import NotFound from "./pages/NotFound";
+import { useTenant } from "@/contexts/TenantContext";
+
+const HomeRoute = () => {
+  const { tenant, loading, isPlatformHome } = useTenant();
+  if (loading) return null;
+  if (isPlatformHome) return <Landing />;
+  return <Index />;
+};
 
 const queryClient = new QueryClient();
 
