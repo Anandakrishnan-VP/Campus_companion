@@ -17,6 +17,7 @@ interface TenantContextType {
   loading: boolean;
   error: string | null;
   allTenants: Tenant[];
+  isPlatformHome: boolean;
   setTenantBySlug: (slug: string) => void;
 }
 
