@@ -83,8 +83,8 @@ export function TenantProvider({ children }: { children: ReactNode }) {
           if (found) {
             setTenant(found);
           }
-        } else if (tenants.length === 1) {
-          // Auto-select when only one tenant exists
+        } else if (tenants.length > 0) {
+          // Auto-select first tenant to skip landing page
           setTenant(tenants[0]);
         }
       } catch (e) {
