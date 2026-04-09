@@ -83,8 +83,10 @@ export function TenantProvider({ children }: { children: ReactNode }) {
           if (found) {
             setTenant(found);
           }
+        } else if (tenants.length === 1) {
+          // Auto-select when only one tenant exists
+          setTenant(tenants[0]);
         }
-        // No auto-select — if no slug resolved, tenant stays null (platform home)
       } catch (e) {
         setError("Failed to load tenant");
       }
