@@ -498,8 +498,12 @@ export type Database = {
           logo_url: string | null
           name: string
           primary_color: string | null
+          razorpay_customer_id: string | null
+          razorpay_plan_id: string | null
+          razorpay_subscription_id: string | null
           slug: string
           status: string
+          subscription_status: string
           updated_at: string
           website_url: string | null
         }
@@ -510,8 +514,12 @@ export type Database = {
           logo_url?: string | null
           name: string
           primary_color?: string | null
+          razorpay_customer_id?: string | null
+          razorpay_plan_id?: string | null
+          razorpay_subscription_id?: string | null
           slug: string
           status?: string
+          subscription_status?: string
           updated_at?: string
           website_url?: string | null
         }
@@ -522,8 +530,12 @@ export type Database = {
           logo_url?: string | null
           name?: string
           primary_color?: string | null
+          razorpay_customer_id?: string | null
+          razorpay_plan_id?: string | null
+          razorpay_subscription_id?: string | null
           slug?: string
           status?: string
+          subscription_status?: string
           updated_at?: string
           website_url?: string | null
         }
