@@ -204,6 +204,19 @@ const Index = () => {
     return "Tap avatar or type to ask";
   };
 
+  // Kiosk gate: inactive subscription
+  if (tenant && tenant.subscription_status !== "active") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4 px-6">
+          <h1 className="text-2xl font-display font-bold text-foreground">{tenant.name}</h1>
+          <p className="text-muted-foreground">This institution's AI kiosk is currently inactive.</p>
+          <p className="text-sm text-muted-foreground">Please contact the institution administrator.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden flex flex-col">
       <div className="fixed inset-0 pointer-events-none">

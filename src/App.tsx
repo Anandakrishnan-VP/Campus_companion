@@ -14,6 +14,7 @@ import Issues from "./pages/Issues";
 import Register from "./pages/Register";
 import SuperAdmin from "./pages/SuperAdmin";
 import SelectTenant from "./pages/SelectTenant";
+import SubscriptionSuccess from "./pages/SubscriptionSuccess";
 import NotFound from "./pages/NotFound";
 import { useTenant } from "@/contexts/TenantContext";
 
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/register" element={<Register />} />
               <Route path="/super-admin" element={<SuperAdmin />} />
               <Route path="/select-tenant" element={<SelectTenant />} />
+              <Route path="/subscription/success" element={<SubscriptionSuccess />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </KioskNotificationProvider>

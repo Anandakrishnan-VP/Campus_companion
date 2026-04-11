@@ -9,6 +9,7 @@ interface Tenant {
   website_url: string;
   primary_color: string;
   status: string;
+  subscription_status: string;
 }
 
 interface TenantContextType {
@@ -18,6 +19,7 @@ interface TenantContextType {
   error: string | null;
   allTenants: Tenant[];
   isPlatformHome: boolean;
+  isSubscribed: boolean;
   setTenantBySlug: (slug: string) => void;
 }
 
@@ -28,6 +30,7 @@ const TenantContext = createContext<TenantContextType>({
   error: null,
   allTenants: [],
   isPlatformHome: false,
+  isSubscribed: false,
   setTenantBySlug: () => {},
 });
 
@@ -102,6 +105,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
       error,
       allTenants,
       isPlatformHome: !tenant && !loading,
+      isSubscribed: tenant?.subscription_status === "active",
       setTenantBySlug,
     }}>
       {children}
