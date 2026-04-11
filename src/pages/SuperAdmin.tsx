@@ -64,6 +64,11 @@ const SuperAdmin = () => {
         </div>
         <div className="flex items-center gap-2">
           <span className={`text-[10px] px-2 py-0.5 rounded-full font-display font-medium ${
+            t.subscription_status === "active" ? "bg-emerald-500/20 text-emerald-400" :
+            t.subscription_status === "canceled" ? "bg-orange-500/20 text-orange-400" :
+            "bg-muted text-muted-foreground"
+          }`}>{t.subscription_status === "active" ? "💳 Subscribed" : t.subscription_status === "canceled" ? "💳 Canceled" : "💳 No Plan"}</span>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-display font-medium ${
             t.status === "active" ? "bg-green-500/20 text-green-400" :
             t.status === "pending" ? "bg-yellow-500/20 text-yellow-400" :
             t.status === "suspended" ? "bg-destructive/20 text-destructive" :

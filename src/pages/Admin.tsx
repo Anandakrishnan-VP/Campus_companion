@@ -427,6 +427,39 @@ const Admin = () => {
       return dayOrder !== 0 ? dayOrder : a.start_time.localeCompare(b.start_time);
     });
 
+  // Paywall gate
+  if (tenant && tenant.subscription_status !== "active") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-6 max-w-md mx-auto px-6">
+          <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+            <AlertTriangle className="w-10 h-10 text-primary" />
+          </div>
+          <h1 className="text-2xl font-display font-bold text-foreground">Subscription Required</h1>
+          <p className="text-muted-foreground">Your institution needs an active subscription to access the admin dashboard.</p>
+          <button
+            onClick={async () => {
+              const resp = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/mock-payment`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+                body: JSON.stringify({ tenant_id: tenant.id, action: "activate" }),
+              });
+              if (resp.ok) {
+                window.location.href = "/subscription/success";
+              } else {
+                toast({ title: "Payment failed", description: "Please try again." });
+              }
+            }}
+            className="px-8 py-3 rounded-xl bg-primary text-primary-foreground font-display font-bold hover:bg-primary/90 transition-colors"
+          >
+            Subscribe to Campus AI — ₹999/mo
+          </button>
+          <p className="text-xs text-muted-foreground">(Mock payment — instant activation for testing)</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <header className="flex items-center gap-3 px-6 py-4 border-b border-border/50">
