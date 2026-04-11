@@ -63,7 +63,33 @@ const Login = () => {
       }
 
       const role = roles[0].role;
-      navigate(role === "super_admin" ? "/super-admin" : role === "admin" ? "/admin" : "/professor");
+
+      if (role === "admin") {
+        // Check tenant subscription status before granting admin access
+        const { data: membership } = await supabase
+          .from("tenant_memberships")
+          .select("tenant_id")
+          .eq("user_id", data.user.id)
+          .limit(1)
+          .single();
+
+        if (membership) {
+          const { data: tenantData } = await supabase
+            .from("tenants")
+            .select("subscription_status")
+            .eq("id", membership.tenant_id)
+            .single();
+
+          if (tenantData && tenantData.subscription_status !== "active") {
+            navigate("/subscribe");
+            return;
+          }
+        }
+        navigate("/admin");
+        return;
+      }
+
+      navigate(role === "super_admin" ? "/super-admin" : "/professor");
     } catch (err: any) {
       toast({ title: "Login Failed", description: "Invalid ID or password.", variant: "destructive" });
     }

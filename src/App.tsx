@@ -15,6 +15,7 @@ import Register from "./pages/Register";
 import SuperAdmin from "./pages/SuperAdmin";
 import SelectTenant from "./pages/SelectTenant";
 import SubscriptionSuccess from "./pages/SubscriptionSuccess";
+import Subscribe from "./pages/Subscribe";
 import NotFound from "./pages/NotFound";
 import { useTenant } from "@/contexts/TenantContext";
 
