@@ -30,15 +30,12 @@ const Login = () => {
     });
   }, [navigate]);
 
-  // Auto-create admin account (047/ncerc047) only on first-ever setup
+  // Auto-create super admin account on first-ever setup
   useEffect(() => {
     (async () => {
       try {
-        const res = await supabase.functions.invoke("setup-admin", {
-          body: { admin_id: "047", password: "ncerc047" },
-        });
-        // 400 "Admin already exists" is fine — silently ignore
-        if (res.error) console.log("Admin setup skipped (already exists)");
+        const res = await supabase.functions.invoke("setup-admin", {});
+        if (res.error) console.log("Super admin setup skipped (already exists)");
       } catch { /* ignore */ }
       setInitializing(false);
     })();
@@ -108,7 +105,7 @@ const Login = () => {
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative z-10 w-full max-w-sm mx-4">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
-          <ArrowLeft className="w-4 h-4" /> Back to Kiosk
+          <ArrowLeft className="w-4 h-4" /> Back
         </Link>
 
         <div className="glass-card p-8">
@@ -116,20 +113,19 @@ const Login = () => {
             <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
               <Lock className="w-6 h-6 text-primary" />
             </div>
-            <h1 className="text-xl font-display font-bold text-foreground">Staff Login</h1>
-            <p className="text-xs text-muted-foreground text-center">Enter your numeric ID and password</p>
+            <h1 className="text-xl font-display font-bold text-foreground">Admin Login</h1>
+            <p className="text-xs text-muted-foreground text-center">Enter your admin ID and password to continue</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="text-xs font-display text-muted-foreground mb-1 block">ID</label>
+              <label className="text-xs font-display text-muted-foreground mb-1 block">Admin ID</label>
               <input
                 type="text"
-                inputMode="numeric"
                 className={inputCls}
                 value={userId}
                 onChange={e => setUserId(e.target.value)}
-                placeholder="e.g. 047"
+                placeholder="e.g. saasbyak"
                 required
               />
             </div>
