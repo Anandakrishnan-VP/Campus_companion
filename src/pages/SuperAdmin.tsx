@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, LogOut, Building2, Users, Activity, Trash2, Ban, CheckCircle2, Clock, Check, X } from "lucide-react";
+import { ArrowLeft, LogOut, Building2, Users, Activity, Trash2, Ban, CheckCircle2, Clock, Check, X, KeyRound, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
 import { useRealtimeTable } from "@/hooks/use-realtime-table";
@@ -12,6 +12,13 @@ const SuperAdmin = () => {
   const { data: tenants, refetch: refetchTenants } = useRealtimeTable("tenants" as any);
   const { data: memberships } = useRealtimeTable("tenant_memberships" as any);
 
+  // Credential creation state
+  const [credentialTenantId, setCredentialTenantId] = useState<string | null>(null);
+  const [adminId, setAdminId] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
+  const [creatingCreds, setCreatingCreds] = useState(false);
+
   if (authLoading) return <div className="min-h-screen bg-background flex items-center justify-center"><p className="text-muted-foreground font-display">Loading...</p></div>;
 
   const pendingTenants = tenants.filter((t: any) => t.status === "pending");
@@ -21,7 +28,12 @@ const SuperAdmin = () => {
   const approveTenant = async (id: string) => {
     await supabase.from("tenants").update({ status: "active" } as any).eq("id", id);
     refetchTenants();
-    toast({ title: "✅ Tenant approved and activated" });
+    toast({ title: "✅ Tenant approved" });
+    // Open credential creation form
+    setCredentialTenantId(id);
+    setAdminId("");
+    setAdminPassword("");
+    setAdminEmail("");
   };
 
   const rejectTenant = async (id: string) => {
@@ -44,6 +56,48 @@ const SuperAdmin = () => {
     refetchTenants();
     toast({ title: "Tenant deleted" });
   };
+
+  const createCredentials = async () => {
+    if (!credentialTenantId || !adminId.trim() || !adminPassword.trim()) {
+      toast({ title: "Missing fields", description: "Admin ID and password are required", variant: "destructive" });
+      return;
+    }
+    if (adminPassword.length < 6) {
+      toast({ title: "Password too short", description: "Minimum 6 characters", variant: "destructive" });
+      return;
+    }
+    setCreatingCreds(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const { data, error } = await supabase.functions.invoke("create-admin-credentials", {
+        body: {
+          tenant_id: credentialTenantId,
+          admin_id: adminId.trim(),
+          password: adminPassword,
+          admin_email: adminEmail.trim(),
+        },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast({ title: "✅ Admin credentials created!", description: `Login ID: ${adminId.trim()} — share these with the college admin.` });
+      setCredentialTenantId(null);
+      setAdminId("");
+      setAdminPassword("");
+      setAdminEmail("");
+      refetchTenants();
+    } catch (err: any) {
+      toast({ title: "Failed to create credentials", description: err.message, variant: "destructive" });
+    }
+    setCreatingCreds(false);
+  };
+
+  const getTenantName = (id: string) => {
+    const t = tenants.find((t: any) => t.id === id);
+    return t?.name || "Unknown";
+  };
+
+  const inputCls = "w-full bg-muted/50 border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20 transition-all font-body";
 
   const TenantCard = ({ t, showActions }: { t: any; showActions: "pending" | "active" }) => (
     <motion.div key={t.id} layout className="glass-card p-4">
@@ -86,6 +140,11 @@ const SuperAdmin = () => {
             </>
           ) : (
             <>
+              {getMemberCount(t.id) === 0 && (
+                <button onClick={() => { setCredentialTenantId(t.id); setAdminId(""); setAdminPassword(""); setAdminEmail(""); }} className="p-2 rounded-lg bg-primary/10 text-primary hover:bg-primary/20" title="Create Admin Credentials">
+                  <KeyRound className="w-4 h-4" />
+                </button>
+              )}
               <button onClick={() => toggleStatus(t.id, t.status)} className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground" title={t.status === "active" ? "Suspend" : "Activate"}>
                 {t.status === "active" ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
               </button>
@@ -134,6 +193,41 @@ const SuperAdmin = () => {
             <p className="text-xs text-muted-foreground font-display">Users</p>
           </div>
         </div>
+
+        {/* Credential Creation Modal */}
+        {credentialTenantId && (
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 mb-6 border-2 border-primary/30">
+            <div className="flex items-center gap-2 mb-4">
+              <KeyRound className="w-5 h-5 text-primary" />
+              <h3 className="font-display font-bold text-foreground">Create Admin Credentials for {getTenantName(credentialTenantId)}</h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label className="text-xs font-display text-muted-foreground mb-1 block">Admin Login ID *</label>
+                <input className={inputCls} value={adminId} onChange={e => setAdminId(e.target.value)} placeholder="e.g. abc001" required />
+              </div>
+              <div>
+                <label className="text-xs font-display text-muted-foreground mb-1 block">Password *</label>
+                <input type="text" className={inputCls} value={adminPassword} onChange={e => setAdminPassword(e.target.value)} placeholder="Min 6 chars" required />
+              </div>
+              <div>
+                <label className="text-xs font-display text-muted-foreground mb-1 block">Admin Email (for notification)</label>
+                <input type="email" className={inputCls} value={adminEmail} onChange={e => setAdminEmail(e.target.value)} placeholder="admin@college.ac.in" />
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button onClick={createCredentials} disabled={creatingCreds}
+                className="px-6 py-2 rounded-xl bg-primary text-primary-foreground font-display font-semibold text-sm disabled:opacity-50">
+                {creatingCreds ? "Creating..." : "Create & Share Credentials"}
+              </button>
+              <button onClick={() => setCredentialTenantId(null)}
+                className="px-4 py-2 rounded-xl bg-secondary/50 text-muted-foreground font-display text-sm hover:text-foreground">
+                Cancel
+              </button>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-2">The college admin will use this ID and password to log in, pay the subscription, and access their dashboard.</p>
+          </motion.div>
+        )}
 
         {/* Pending Requests */}
         {pendingTenants.length > 0 && (

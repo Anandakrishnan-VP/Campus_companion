@@ -11,13 +11,13 @@ const Register = () => {
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [adminName, setAdminName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!collegeName.trim() || !abbreviation.trim() || !email.trim() || !password.trim()) return;
+    if (!collegeName.trim() || !abbreviation.trim() || !email.trim()) return;
     if (!/^[a-z0-9]+$/.test(abbreviation)) {
       toast({ title: "Invalid abbreviation", description: "Use only lowercase letters and numbers", variant: "destructive" });
       return;
@@ -32,14 +32,13 @@ const Register = () => {
           website_url: websiteUrl.trim(),
           admin_name: adminName.trim(),
           email: email.trim(),
-          password,
         },
       });
 
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
 
-      toast({ title: "🎉 Registration submitted!", description: "Your request has been sent for approval. You'll be able to log in once approved by the platform admin." });
+      toast({ title: "🎉 Registration submitted!", description: "Your request has been sent for approval. The platform admin will create your login credentials and notify you." });
       navigate("/");
     } catch (err: any) {
       toast({ title: "Registration failed", description: err.message || "Please try again", variant: "destructive" });
@@ -66,7 +65,7 @@ const Register = () => {
               <Building2 className="w-6 h-6 text-primary" />
             </div>
             <h1 className="text-xl font-display font-bold text-foreground">Register Your College</h1>
-            <p className="text-xs text-muted-foreground text-center">Set up a campus AI kiosk — requires admin approval</p>
+            <p className="text-xs text-muted-foreground text-center">Submit a request — admin credentials will be created by the platform admin</p>
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4">
@@ -88,16 +87,16 @@ const Register = () => {
               <input className={inputCls} value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://example.ac.in" />
             </div>
             <div>
-              <label className="text-xs font-display text-muted-foreground mb-1 block">Admin Name</label>
+              <label className="text-xs font-display text-muted-foreground mb-1 block">Contact Person Name</label>
               <input className={inputCls} value={adminName} onChange={e => setAdminName(e.target.value)} placeholder="Your full name" />
             </div>
             <div>
-              <label className="text-xs font-display text-muted-foreground mb-1 block">Admin Email *</label>
+              <label className="text-xs font-display text-muted-foreground mb-1 block">Contact Email *</label>
               <input type="email" className={inputCls} value={email} onChange={e => setEmail(e.target.value)} placeholder="admin@college.ac.in" required />
             </div>
             <div>
-              <label className="text-xs font-display text-muted-foreground mb-1 block">Password *</label>
-              <input type="password" className={inputCls} value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+              <label className="text-xs font-display text-muted-foreground mb-1 block">Note to Admin</label>
+              <textarea className={inputCls + " min-h-[80px] resize-none"} value={message} onChange={e => setMessage(e.target.value)} placeholder="Any message or request for the platform admin..." />
             </div>
 
             <button type="submit" disabled={loading}
@@ -105,7 +104,7 @@ const Register = () => {
               {loading ? "Submitting..." : "Submit Registration"}
             </button>
 
-            <p className="text-[11px] text-muted-foreground text-center">After submission, the platform admin will review and approve your request.</p>
+            <p className="text-[11px] text-muted-foreground text-center">After approval, the platform admin will create your login credentials and send them to your email.</p>
           </form>
         </div>
       </motion.div>

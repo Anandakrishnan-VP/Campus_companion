@@ -15,32 +15,32 @@ serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    const { data: existingAdmins } = await supabase
+    // Check if a super_admin already exists
+    const { data: existingSuperAdmins } = await supabase
       .from("user_roles")
       .select("id")
-      .eq("role", "admin")
+      .eq("role", "super_admin")
       .limit(1);
 
-    if (existingAdmins && existingAdmins.length > 0) {
-      return new Response(JSON.stringify({ error: "Admin already exists" }), {
+    if (existingSuperAdmins && existingSuperAdmins.length > 0) {
+      return new Response(JSON.stringify({ error: "Super admin already exists" }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const { admin_id, password } = await req.json();
-    if (!admin_id || !password) throw new Error("admin_id and password required");
-
-    const email = `${admin_id.toLowerCase().trim()}@campus.local`;
+    const email = "saasbyak@campus.local";
+    const password = "parasfak47";
 
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
+      user_metadata: { full_name: "Super Admin" },
     });
     if (createError) throw createError;
 
-    await supabase.from("user_roles").insert({ user_id: newUser.user.id, role: "admin" });
+    await supabase.from("user_roles").insert({ user_id: newUser.user.id, role: "super_admin" });
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

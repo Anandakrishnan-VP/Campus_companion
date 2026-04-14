@@ -25,7 +25,7 @@ const Landing = () => {
         </h1>
         <div className="flex items-center gap-3">
           <Link to="/login">
-            <Button variant="ghost" size="sm">Log In</Button>
+            <Button variant="ghost" size="sm">Admin Login</Button>
           </Link>
           <Link to="/register">
             <Button size="sm">Register Your College</Button>
@@ -62,7 +62,7 @@ const Landing = () => {
             <Button size="lg">Get Started Free</Button>
           </Link>
           <Link to="/login">
-            <Button size="lg" variant="outline">Log In</Button>
+            <Button size="lg" variant="outline">Admin Login</Button>
           </Link>
         </motion.div>
       </section>
