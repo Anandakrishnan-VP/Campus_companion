@@ -30,15 +30,9 @@ const Login = () => {
     });
   }, [navigate]);
 
-  // Auto-create super admin account on first-ever setup
+  // No longer auto-calling setup-admin from client side
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await supabase.functions.invoke("setup-admin", {});
-        if (res.error) console.log("Super admin setup skipped (already exists)");
-      } catch { /* ignore */ }
-      setInitializing(false);
-    })();
+    setInitializing(false);
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
