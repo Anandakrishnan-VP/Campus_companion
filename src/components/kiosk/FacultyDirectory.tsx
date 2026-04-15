@@ -9,8 +9,6 @@ interface Faculty {
   name: string;
   department: string;
   office_location: string | null;
-  phone: string | null;
-  email: string | null;
   photo_url: string | null;
   is_present: boolean | null;
 }
