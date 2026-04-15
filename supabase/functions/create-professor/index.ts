@@ -31,8 +31,31 @@ serve(async (req) => {
 
     if (!callerRoles || callerRoles.length === 0) throw new Error("Not authorized - admin only");
 
+    // Get caller's tenant
+    const { data: callerMembership } = await supabase
+      .from("tenant_memberships")
+      .select("tenant_id")
+      .eq("user_id", caller.id)
+      .limit(1)
+      .single();
+
+    if (!callerMembership) throw new Error("No tenant membership found");
+    const callerTenantId = callerMembership.tenant_id;
+
     const { faculty_id } = await req.json();
     if (!faculty_id) throw new Error("faculty_id required");
+
+    // Verify faculty belongs to caller's tenant
+    const { data: facultyRecord } = await supabase
+      .from("faculty")
+      .select("tenant_id")
+      .eq("id", faculty_id)
+      .single();
+
+    if (!facultyRecord) throw new Error("Faculty not found");
+    if (facultyRecord.tenant_id !== callerTenantId) {
+      throw new Error("Unauthorized: faculty belongs to another tenant");
+    }
 
     // Generate unique 3-digit numeric ID (100-999)
     let numericId: string;
@@ -40,7 +63,6 @@ serve(async (req) => {
     while (true) {
       numericId = String(Math.floor(100 + Math.random() * 900));
       const email = `${numericId}@campus.local`;
-      // Check if this ID already exists
       const { data: existing } = await supabase.auth.admin.listUsers();
       const taken = existing?.users?.some((u: any) => u.email === email);
       if (!taken) break;
@@ -48,7 +70,6 @@ serve(async (req) => {
       if (attempts > 50) throw new Error("Could not generate unique ID");
     }
 
-    // Generate a small password: first 3 letters of "ncerc" + numericId
     const password = `ncerc${numericId}`;
     const email = `${numericId}@campus.local`;
 
