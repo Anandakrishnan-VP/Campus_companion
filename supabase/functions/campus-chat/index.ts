@@ -75,7 +75,7 @@ serve(async (req) => {
     const tenantFilter = (query: any) => tenant_id ? query.eq("tenant_id", tenant_id) : query;
 
     const [facultyRes, timetableRes, eventsRes, locationsRes, attendanceRes, kbRes, deptsRes, tenantRes] = await Promise.all([
-      tenantFilter(supabase.from("faculty").select("*")),
+      tenantFilter(supabase.from("faculty").select("id, tenant_id, name, department, office_location, photo_url, is_present, aliases")),
       tenantFilter(supabase.from("timetable").select("*")),
       tenantFilter(supabase.from("events").select("*").gte("event_date", new Date().toISOString().split("T")[0])),
       tenantFilter(supabase.from("locations").select("*")),

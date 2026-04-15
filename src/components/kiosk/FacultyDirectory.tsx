@@ -9,8 +9,6 @@ interface Faculty {
   name: string;
   department: string;
   office_location: string | null;
-  phone: string | null;
-  email: string | null;
   photo_url: string | null;
   is_present: boolean | null;
 }
@@ -33,10 +31,10 @@ const FacultyDirectory = ({ open, onClose }: FacultyDirectoryProps) => {
   const fetchFaculty = async () => {
     setLoading(true);
     const { data } = await supabase
-      .from("faculty")
-      .select("id, name, department, office_location, phone, email, photo_url, is_present")
+      .from("faculty_public" as any)
+      .select("id, name, department, office_location, photo_url, is_present")
       .order("name");
-    setFaculty((data as Faculty[]) || []);
+    setFaculty((data as unknown as Faculty[]) || []);
     setLoading(false);
   };
 
