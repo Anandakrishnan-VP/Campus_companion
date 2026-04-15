@@ -34,7 +34,7 @@ const FacultyDirectory = ({ open, onClose }: FacultyDirectoryProps) => {
       .from("faculty_public" as any)
       .select("id, name, department, office_location, photo_url, is_present")
       .order("name");
-    setFaculty((data as Faculty[]) || []);
+    setFaculty((data as unknown as Faculty[]) || []);
     setLoading(false);
   };
 
