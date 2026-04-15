@@ -1,48 +1,21 @@
 
 
-# Fix Subscription Flow: Register → Approve → Pay → Access
+# Bootstrap the Super Admin Account
 
-## Current State
-- Super admin accesses `/super-admin` by logging in at `/login` with a super_admin role account
-- After registration approval, college admins log in and see a paywall inside the admin dashboard
-- No standalone payment gate exists
+## Problem
+The super admin account (`saasbyak` / `parasfak47`) doesn't exist in the database yet. The `setup-admin` edge function requires a `SETUP_SECRET` header to create it, but nothing triggers it automatically.
 
-## Desired Flow
-```text
-College registers at /register → status: pending
-Super admin approves at /super-admin → status: active, subscription: none
-College admin logs in at /login → redirected to /subscribe (payment page)
-Admin pays (mock) → subscription: active
-Admin redirected to /admin → full access
-Kiosk subdomain becomes accessible
-```
+## Solution
+Trigger the `setup-admin` edge function once to create the account. Two changes needed:
 
-## Changes
+### 1. Invoke the setup-admin function (one-time)
+Use the edge function test/curl tool to call `setup-admin` with the `x-setup-secret` header. The secrets `SETUP_SECRET`, `SETUP_ADMIN_EMAIL` (`saasbyak@campus.local`), and `SETUP_ADMIN_PASSWORD` (`parasfak47`) are already configured.
 
-### 1. Create `/subscribe` page (`src/pages/Subscribe.tsx`)
-- Standalone payment page shown to admins whose tenant has `subscription_status !== 'active'`
-- Shows plan details (Campus AI Pro — ₹999/mo), features list, and "Pay Now" button
-- Calls `mock-payment` edge function to activate
-- On success, redirects to `/subscription/success` → then `/admin`
+### 2. Add a visible route to the Super Admin dashboard
+Verify `/super-admin` route exists in `App.tsx` so once the account is created, logging in at `/login` with `saasbyak` / `parasfak47` redirects there automatically.
 
-### 2. Update Login redirect logic (`src/pages/Login.tsx`)
-- After admin login, check tenant's `subscription_status`
-- If `subscription_status !== 'active'`, redirect to `/subscribe` instead of `/admin`
-- Super admin and professor flows unchanged
-
-### 3. Simplify Admin.tsx paywall
-- Remove the inline paywall from `Admin.tsx` since the `/subscribe` page now handles it
-- Keep a simple redirect guard: if not subscribed, redirect to `/subscribe`
-
-### 4. Update App.tsx
-- Add route for `/subscribe`
-
-### 5. Kiosk gate (already done)
-- `Index.tsx` already blocks kiosk access for unsubscribed tenants — no changes needed
-
-## Files
-- **New**: `src/pages/Subscribe.tsx`
-- **Edit**: `src/pages/Login.tsx` — add subscription check after admin login
-- **Edit**: `src/pages/Admin.tsx` — replace paywall with redirect
-- **Edit**: `src/App.tsx` — add `/subscribe` route
+## After Setup
+- Go to `/login`
+- Enter ID: `saasbyak`, Password: `parasfak47`
+- You'll be redirected to `/super-admin` dashboard automatically
 
