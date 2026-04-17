@@ -119,7 +119,7 @@ const Login = () => {
                 className={inputCls}
                 value={userId}
                 onChange={e => setUserId(e.target.value)}
-                placeholder="e.g. saasbyak"
+                placeholder="e.g. yourcollegeid"
                 required
               />
             </div>
