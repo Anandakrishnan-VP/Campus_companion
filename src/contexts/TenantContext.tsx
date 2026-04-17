@@ -61,7 +61,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTenants = async () => {
-    const { data } = await supabase.from("tenants").select("*").eq("status", "active");
+    const { data } = await supabase.from("tenants").select("*").in("status", ["active", "suspended"]);
     const tenants = (data || []) as Tenant[];
     setAllTenants(tenants);
     return tenants;
