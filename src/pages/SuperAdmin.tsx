@@ -43,11 +43,13 @@ const SuperAdmin = () => {
     toast({ title: "Registration rejected" });
   };
 
-  const toggleStatus = async (id: string, currentStatus: string) => {
+  const toggleStatus = async (id: string, currentStatus: string, name: string) => {
     const newStatus = currentStatus === "active" ? "suspended" : "active";
+    const action = newStatus === "suspended" ? "SUSPEND" : "RESTART";
+    if (!confirm(`${action} service for "${name}"?\n\n${newStatus === "suspended" ? "The kiosk will become inaccessible to all students until you restart it." : "The kiosk will become accessible again."}`)) return;
     await supabase.from("tenants").update({ status: newStatus } as any).eq("id", id);
     refetchTenants();
-    toast({ title: `Tenant ${newStatus}` });
+    toast({ title: newStatus === "suspended" ? "🛑 Service suspended" : "✅ Service restarted", description: name });
   };
 
   const deleteTenant = async (id: string) => {
