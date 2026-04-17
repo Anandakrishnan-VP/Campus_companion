@@ -48,7 +48,14 @@ serve(async (req) => {
       (user) => user.email?.toLowerCase() === adminEmail.toLowerCase(),
     );
 
-    let targetUserId = existingEmailUser?.id ?? existingRole?.user_id ?? null;
+    // If a super_admin role exists but is bound to a user with a different email,
+    // delete that stale auth user so we can create a fresh one with the correct email.
+    if (existingRole?.user_id && existingRole.user_id !== existingEmailUser?.id) {
+      await supabase.auth.admin.deleteUser(existingRole.user_id).catch(() => {});
+      await supabase.from("user_roles").delete().eq("user_id", existingRole.user_id);
+    }
+
+    let targetUserId = existingEmailUser?.id ?? null;
     let action: "created" | "updated" = "updated";
 
     if (!targetUserId) {
@@ -64,7 +71,6 @@ serve(async (req) => {
       action = "created";
     } else {
       const { error: updateError } = await supabase.auth.admin.updateUserById(targetUserId, {
-        email: adminEmail,
         password: adminPassword,
         email_confirm: true,
         user_metadata: { full_name: "Super Admin" },
