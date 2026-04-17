@@ -204,6 +204,20 @@ const Index = () => {
     return "Tap avatar or type to ask";
   };
 
+  // Kiosk gate: suspended by Super Admin
+  if (tenant && tenant.status === "suspended") {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4 px-6 max-w-md">
+          <div className="w-16 h-16 mx-auto rounded-full bg-destructive/15 flex items-center justify-center text-3xl">⛔</div>
+          <h1 className="text-2xl font-display font-bold text-foreground">{tenant.name}</h1>
+          <p className="text-destructive font-display font-semibold">Service Suspended</p>
+          <p className="text-sm text-muted-foreground">This institution's AI kiosk has been suspended by the platform administrator. Please contact support to restore service.</p>
+        </div>
+      </div>
+    );
+  }
+
   // Kiosk gate: inactive subscription
   if (tenant && tenant.subscription_status !== "active") {
     return (
