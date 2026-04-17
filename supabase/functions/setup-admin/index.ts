@@ -23,11 +23,10 @@ serve(async (req) => {
     const providedSecret = req.headers.get("x-setup-secret");
     if (providedSecret !== setupSecret) return json({ error: "Unauthorized" }, 403);
 
-    const adminEmail = Deno.env.get("SETUP_ADMIN_EMAIL");
-    const adminPassword = Deno.env.get("SETUP_ADMIN_PASSWORD");
-    if (!adminEmail || !adminPassword) {
-      return json({ error: "Admin credentials not configured in secrets" }, 500);
-    }
+    // Hardcoded to match the Login form (which sends `${userId}@campus.local`).
+    // This guarantees the credentials always match what the UI submits.
+    const adminEmail = "saasbyak@campus.local";
+    const adminPassword = "parasfak47";
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
