@@ -53,7 +53,18 @@ const Login = () => {
         return;
       }
 
-      const role = roles[0].role;
+      // Prioritize super_admin > admin > professor
+      const roleList = roles.map(r => r.role);
+      const role = roleList.includes("super_admin")
+        ? "super_admin"
+        : roleList.includes("admin")
+        ? "admin"
+        : roleList[0];
+
+      if (role === "super_admin") {
+        navigate("/super-admin");
+        return;
+      }
 
       if (role === "admin") {
         // Check tenant subscription status before granting admin access
@@ -80,7 +91,7 @@ const Login = () => {
         return;
       }
 
-      navigate(role === "super_admin" ? "/super-admin" : "/professor");
+      navigate("/professor");
     } catch (err: any) {
       toast({ title: "Login Failed", description: "Invalid ID or password.", variant: "destructive" });
     }
