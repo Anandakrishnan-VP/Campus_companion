@@ -147,8 +147,8 @@ const SuperAdmin = () => {
                   <KeyRound className="w-4 h-4" />
                 </button>
               )}
-              <button onClick={() => toggleStatus(t.id, t.status)} className="p-2 rounded-lg bg-secondary/50 text-muted-foreground hover:text-foreground" title={t.status === "active" ? "Suspend" : "Activate"}>
-                {t.status === "active" ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+              <button onClick={() => toggleStatus(t.id, t.status, t.name)} className={`px-3 py-2 rounded-lg flex items-center gap-1.5 text-xs font-display font-semibold transition-colors ${t.status === "active" ? "bg-destructive/10 text-destructive hover:bg-destructive/20" : "bg-green-500/10 text-green-400 hover:bg-green-500/20"}`} title={t.status === "active" ? "Suspend Service" : "Restart Service"}>
+                {t.status === "active" ? <><Ban className="w-4 h-4" /> Suspend</> : <><CheckCircle2 className="w-4 h-4" /> Restart</>}
               </button>
               <button onClick={() => deleteTenant(t.id)} className="p-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20" title="Delete">
                 <Trash2 className="w-4 h-4" />
